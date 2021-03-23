@@ -1,0 +1,16 @@
+{
+  "name": "purescript-unscramble",
+  "set": "psc-0.13.8-20201029",
+  "source": "https://github.com/zyla/package-sets.git",
+  "depends": [
+    "prelude",
+    "foreign",
+    "generics-rep",
+    "foreign-object",
+    "ordered-collections",
+
+    "console",
+    "spec",
+    "spec-mocha"
+  ]
+}
