@@ -3,6 +3,7 @@ module Unscramble where
 import Prelude
 
 import Data.Maybe (Maybe(..))
+import Data.Either (Either(..))
 import Foreign.Object (Object)
 import Data.Symbol (class IsSymbol, reflectSymbol, SProxy(..))
 import Type.Data.RowList (RLProxy(..))
@@ -11,6 +12,9 @@ import Foreign
 
 decode :: forall a. Decode a => Foreign -> Maybe a
 decode value = catchDecodingError (unsafeDecode value)
+
+decodeEither :: forall a. Decode a => Foreign -> Either String a
+decodeEither value = catchDecodingErrorEither (unsafeDecode value)
 
 decodeJSON :: forall a. Decode a => String -> Maybe a
 decodeJSON value = catchDecodingError (unsafeDecode (unsafeParseJSON value))
@@ -80,5 +84,8 @@ foreign import unsafeParseJSON :: String -> Foreign
 
 catchDecodingError :: forall a. (Partial => a) -> Maybe a
 catchDecodingError = catchDecodingErrorImpl (\_ -> Nothing) Just
+
+catchDecodingErrorEither :: forall a. (Partial => a) -> Either String a
+catchDecodingErrorEither = catchDecodingErrorImpl Left Right
 
 foreign import catchDecodingErrorImpl :: forall a r. (String -> r) -> (a -> r) -> (Partial => a) -> r

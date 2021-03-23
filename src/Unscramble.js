@@ -67,8 +67,17 @@ exports.decodeBoolean = x => {
 
 exports.decodeArray = decodeItem => x => {
   if(typeof x === 'object' && x instanceof Array) {
-    // TODO: error reporting with index
-    return x.map(decodeItem);
+    return x.map((item, index) => {
+      try {
+        return decodeItem(item);
+      } catch(e) {
+        if(e instanceof DecodingError) {
+          decodingError('at [' + index + ']: ' + e.message);
+        } else {
+          throw e;
+        }
+      }
+    });
   } else {
     decodingError("Expected Array");
   }
@@ -78,7 +87,15 @@ exports.decodeObject = decodeItem => x => {
   if(typeof x === 'object' && !(x instanceof Array)) {
     const result = {};
     for(const key in x) {
-      result[key] = decodeItem(x[key]);
+      try {
+        result[key] = decodeItem(x[key]);
+      } catch(e) {
+        if(e instanceof DecodingError) {
+          decodingError('at .' + key + ': ' + e.message);
+        } else {
+          throw e;
+        }
+      }
     }
     return result;
   } else {
@@ -96,7 +113,15 @@ exports.decodeRecord = info => x => {
     const result = {};
     let entry = info;
     while(entry) {
-      result[entry.label] = entry.decodeItem(x[entry.label]);
+      try {
+        result[entry.label] = entry.decodeItem(x[entry.label]);
+      } catch(e) {
+        if(e instanceof DecodingError) {
+          decodingError('at .' + entry.label + ': ' + e.message);
+        } else {
+          throw e;
+        }
+      }
       entry = entry.next;
     }
     return result;

@@ -33,7 +33,7 @@ function randomPrice() {
 
 exports.measure = name => action => () => {
   const N = 100;
-  console.log(action());
+//  console.log(JSON.stringify(action(), null, 2));
   for(let i = 0; i < N; i++) {
     action();
   }

@@ -9,6 +9,8 @@ import Data.Maybe
 import Control.Monad.Except (runExcept)
 import Data.Either (hush)
 import Effect.Exception (throw)
+import Data.Either (Either(..), either)
+import Data.List.NonEmpty as NE
 
 type Size = String
 
@@ -31,7 +33,7 @@ derive instance eqProduct :: Eq Product
 newtype Addition = Addition
   { name :: String
   , description :: String
-  , photo :: String
+  , photo :: Maybe String
   , price :: Array Number
   , enabled :: Boolean
   , minQuantity :: Int
@@ -46,20 +48,22 @@ foreign import generateData :: Effect Foreign
 
 foreign import measure :: forall a. String -> (Unit -> a) -> Effect Unit
 
-test :: String -> (Foreign -> Maybe (Array Product)) -> Effect (Maybe (Array Product))
-test name decoder = do
-  input <- generateData
+test :: Foreign -> String -> (Foreign -> Either String (Array Product)) -> Effect (Either String (Array Product))
+test input name decoder = do
   measure name (\_ -> decoder input)
 
   let result = decoder input
-  when (isNothing result) do
-    throw $ "decoder " <> name <> " failed"
-  pure result
+  case result of
+    Left err ->
+      throw $ "decoder " <> name <> " failed: " <> err
+    Right _ ->
+      pure result
 
 main :: Effect Unit
 main = do
-  result1 <- test "Unscramble Record" U.decode
-  result2 <- test "Foreign.Generic Record" (hush <<< runExcept <<< F.decode)
+  input <- generateData
+  result1 <- test input "Unscramble Record" U.decodeEither
+  result2 <- test input "Foreign.Generic Record" (either (Left <<< renderForeignError <<< NE.head) Right <<< runExcept <<< F.decode)
 
   unless (result1 == result2) do
     throw "results differ"
