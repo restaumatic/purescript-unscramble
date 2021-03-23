@@ -94,9 +94,10 @@ exports.recordInfoNil = null;
 exports.decodeRecord = info => x => {
   if(typeof x === 'object' && !(x instanceof Array)) {
     const result = {};
-    while(info) {
-      result[info.label] = info.decodeItem(x[info.label]);
-      info = info.next;
+    let entry = info;
+    while(entry) {
+      result[entry.label] = entry.decodeItem(x[entry.label]);
+      entry = entry.next;
     }
     return result;
   } else {
