@@ -40,3 +40,8 @@ main = launchAff_ $ runSpec [consoleReporter] do
       testDecode "true" (Just true)
       testDecode "false" (Just false)
       testDecode "\"hello\"" (Nothing :: Maybe Boolean)
+
+    describe "array" do
+      testDecode "[]" (Just [] :: Maybe (Array Int))
+      testDecode "[1,2,3]" (Just [1,2,3] :: Maybe (Array Int))
+      testDecode "1" (Nothing :: Maybe (Array Int))

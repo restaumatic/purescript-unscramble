@@ -64,3 +64,12 @@ exports.decodeBoolean = x => {
     decodingError("Expected Boolean");
   }
 };
+
+exports.decodeArray = decodeItem => x => {
+  if(typeof x === 'object' && x instanceof Array) {
+    // TODO: error reporting with index
+    return x.map(decodeItem);
+  } else {
+    decodingError("Expected Array");
+  }
+};

@@ -31,12 +31,16 @@ instance decode_Int :: Decode Int where
 instance decode_Boolean :: Decode Boolean where
   unsafeDecode = decodeBoolean
 
+instance decode_Array :: Decode a => Decode (Array a) where
+  unsafeDecode = decodeArray unsafeDecode
+
 -- Internal - TODO: move to Internal
 
 foreign import decodeString :: Foreign -> String
 foreign import decodeNumber :: Foreign -> Number
 foreign import decodeInt :: Foreign -> Int
 foreign import decodeBoolean :: Foreign -> Boolean
+foreign import decodeArray :: forall a. (Foreign -> a) -> Foreign -> Array a
 foreign import unsafeParseJSON :: String -> Foreign
 
 catchDecodingError :: forall a. (Partial => a) -> Maybe a
