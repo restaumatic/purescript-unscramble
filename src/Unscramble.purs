@@ -3,6 +3,7 @@ module Unscramble where
 import Prelude
 
 import Data.Maybe (Maybe(..))
+import Foreign.Object (Object)
 import Foreign
 
 decode :: forall a. Decode a => Foreign -> Maybe a
@@ -34,6 +35,9 @@ instance decode_Boolean :: Decode Boolean where
 instance decode_Array :: Decode a => Decode (Array a) where
   unsafeDecode = decodeArray unsafeDecode
 
+instance decode_Object :: Decode a => Decode (Object a) where
+  unsafeDecode = decodeObject unsafeDecode
+
 -- Internal - TODO: move to Internal
 
 foreign import decodeString :: Foreign -> String
@@ -41,6 +45,7 @@ foreign import decodeNumber :: Foreign -> Number
 foreign import decodeInt :: Foreign -> Int
 foreign import decodeBoolean :: Foreign -> Boolean
 foreign import decodeArray :: forall a. (Foreign -> a) -> Foreign -> Array a
+foreign import decodeObject :: forall a. (Foreign -> a) -> Foreign -> Object a
 foreign import unsafeParseJSON :: String -> Foreign
 
 catchDecodingError :: forall a. (Partial => a) -> Maybe a

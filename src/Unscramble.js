@@ -73,3 +73,15 @@ exports.decodeArray = decodeItem => x => {
     decodingError("Expected Array");
   }
 };
+
+exports.decodeObject = decodeItem => x => {
+  if(typeof x === 'object' && !(x instanceof Array)) {
+    const result = {};
+    for(const key in x) {
+      result[key] = decodeItem(x[key]);
+    }
+    return result;
+  } else {
+    decodingError("Expected Object");
+  }
+};

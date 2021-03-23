@@ -3,6 +3,7 @@ module Test.Main where
 import Prelude
 
 import Effect
+import Data.Tuple (Tuple(..))
 import Data.Maybe (Maybe(..), maybe)
 import Unscramble (decodeJSON, class Decode)
 import Effect.Aff (Aff, launchAff_)
@@ -10,6 +11,7 @@ import Test.Spec.Reporter (consoleReporter)
 import Test.Spec.Runner (runSpec)
 import Test.Spec
 import Test.Spec.Assertions
+import Foreign.Object as Object
 
 main :: Effect Unit
 main = launchAff_ $ runSpec [consoleReporter] do
@@ -45,3 +47,9 @@ main = launchAff_ $ runSpec [consoleReporter] do
       testDecode "[]" (Just [] :: Maybe (Array Int))
       testDecode "[1,2,3]" (Just [1,2,3] :: Maybe (Array Int))
       testDecode "1" (Nothing :: Maybe (Array Int))
+
+    describe "object" do
+      testDecode "{}" (Just Object.empty :: Maybe (Object.Object Int))
+      testDecode """ { "a": 1, "b": 2 } """ (Just (Object.fromFoldable [ Tuple "a" 1, Tuple "b" 2 ]))
+      testDecode "1" (Nothing :: Maybe (Object.Object Int))
+      testDecode "[]" (Nothing :: Maybe (Object.Object Int))
