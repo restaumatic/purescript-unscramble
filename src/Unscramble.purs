@@ -4,6 +4,9 @@ import Prelude
 
 import Data.Maybe (Maybe(..))
 import Foreign.Object (Object)
+import Data.Symbol (class IsSymbol, reflectSymbol, SProxy(..))
+import Type.Data.RowList (RLProxy(..))
+import Prim.RowList as RL
 import Foreign
 
 decode :: forall a. Decode a => Foreign -> Maybe a
@@ -38,7 +41,27 @@ instance decode_Array :: Decode a => Decode (Array a) where
 instance decode_Object :: Decode a => Decode (Object a) where
   unsafeDecode = decodeObject unsafeDecode
 
--- Internal - TODO: move to Internal
+instance decode_Record :: (RL.RowToList r rl, DecodeRecord rl) => Decode (Record r) where
+  unsafeDecode = decodeRecord (recordInfo (RLProxy :: RLProxy rl))
+
+-- Internal and very unsafe - TODO: move to Internal
+
+foreign import data RecordInfo :: Type
+foreign import recordInfoNil :: RecordInfo
+foreign import recordInfoCons :: forall a. String -> (Foreign -> a) -> RecordInfo -> RecordInfo
+foreign import decodeRecord :: forall r. RecordInfo -> Foreign -> Record r
+
+class DecodeRecord rl where
+  recordInfo :: Partial => RLProxy rl -> RecordInfo
+
+instance decodeRecordNil :: DecodeRecord RL.Nil where
+  recordInfo _ = recordInfoNil
+
+instance decodeRecordCons :: (IsSymbol label, Decode a, DecodeRecord rest) => DecodeRecord (RL.Cons label a rest) where
+  recordInfo _ = recordInfoCons
+    (reflectSymbol (SProxy :: SProxy label))
+    (unsafeDecode :: Foreign -> a)
+    (recordInfo (RLProxy :: RLProxy rest))
 
 foreign import decodeString :: Foreign -> String
 foreign import decodeNumber :: Foreign -> Number

@@ -85,3 +85,21 @@ exports.decodeObject = decodeItem => x => {
     decodingError("Expected Object");
   }
 };
+
+/// Record decoding
+
+exports.recordInfoCons = label => decodeItem => next => ({ label, decodeItem, next });
+exports.recordInfoNil = null;
+
+exports.decodeRecord = info => x => {
+  if(typeof x === 'object' && !(x instanceof Array)) {
+    const result = {};
+    while(info) {
+      result[info.label] = info.decodeItem(x[info.label]);
+      info = info.next;
+    }
+    return result;
+  } else {
+    decodingError("Expected Object");
+  }
+};

@@ -13,6 +13,8 @@ import Test.Spec
 import Test.Spec.Assertions
 import Foreign.Object as Object
 
+type TestRecord = { a :: Int, b :: Int }
+
 main :: Effect Unit
 main = launchAff_ $ runSpec [consoleReporter] do
   describe "Unscramble.Decode" do
@@ -53,3 +55,9 @@ main = launchAff_ $ runSpec [consoleReporter] do
       testDecode """ { "a": 1, "b": 2 } """ (Just (Object.fromFoldable [ Tuple "a" 1, Tuple "b" 2 ]))
       testDecode "1" (Nothing :: Maybe (Object.Object Int))
       testDecode "[]" (Nothing :: Maybe (Object.Object Int))
+
+    describe "record" do
+      testDecode """ {} """ (Just {})
+      testDecode """ { "a": 1, "b": 2 } """ (Just { a: 1, b: 2 })
+      testDecode """ { "a": 1, "b": 2, "c": 3 } """ (Just { a: 1, b: 2 })
+      testDecode """ { "a": 1 } """ (Nothing :: Maybe TestRecord)
