@@ -10,6 +10,8 @@ import Type.Data.RowList (RLProxy(..))
 import Prim.RowList as RL
 import Foreign
 
+import Data.Set as Set
+
 decode :: forall a. Decode a => Foreign -> Maybe a
 decode value = catchDecodingError (unsafeDecode value)
 
@@ -54,6 +56,9 @@ instance decode_Maybe :: Decode a => Decode (Maybe a) where
         Nothing
       else
         Just (unsafeDecode value)
+
+instance decode_Set :: (Decode a, Ord a) => Decode (Set.Set a) where
+  unsafeDecode = Set.fromFoldable <<< decodeArray unsafeDecode
 
 -- Internal and very unsafe - TODO: move to Internal
 

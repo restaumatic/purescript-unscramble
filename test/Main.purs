@@ -12,6 +12,7 @@ import Test.Spec.Runner (runSpec)
 import Test.Spec
 import Test.Spec.Assertions
 import Foreign.Object as Object
+import Data.Set as Set
 
 type TestRecord = { a :: Int, b :: Int }
 
@@ -49,6 +50,11 @@ main = launchAff_ $ runSpec [consoleReporter] do
       testDecode "[]" (Just [] :: Maybe (Array Int))
       testDecode "[1,2,3]" (Just [1,2,3] :: Maybe (Array Int))
       testDecode "1" (Nothing :: Maybe (Array Int))
+
+    describe "Set" do
+      testDecode "[]" (Just mempty :: Maybe (Set.Set Int))
+      testDecode "[1,2,3]" (Just (Set.fromFoldable [1,2,3]) :: Maybe (Set.Set Int))
+      testDecode "1" (Nothing :: Maybe (Set.Set Int))
 
     describe "object" do
       testDecode "{}" (Just Object.empty :: Maybe (Object.Object Int))
