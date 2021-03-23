@@ -10,6 +10,7 @@
     "ordered-collections",
 
     "console",
+    "foreign-generic",
     "spec",
     "spec-mocha"
   ]
