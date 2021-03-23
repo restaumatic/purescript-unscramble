@@ -45,13 +45,11 @@ instance decode_Record :: (RL.RowToList r rl, DecodeRecord rl) => Decode (Record
   unsafeDecode = decodeRecord (recordInfo (RLProxy :: RLProxy rl))
 
 instance decode_Maybe :: Decode a => Decode (Maybe a) where
-  unsafeDecode =
-    let decode = unsafeDecode
-    in \value ->
+  unsafeDecode value =
       if isNull value || isUndefined value then
         Nothing
       else
-        Just (decode value)
+        Just (unsafeDecode value)
 
 -- Internal and very unsafe - TODO: move to Internal
 
