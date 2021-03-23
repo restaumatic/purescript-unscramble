@@ -103,6 +103,22 @@ exports.decodeObject = decodeItem => x => {
   }
 };
 
+exports.expectObject = x => {
+  if(typeof x === 'object' && !(x instanceof Array)) {
+    return x;
+  } else {
+    decodingError("Expected Object");
+  }
+};
+
+exports.expectArray = x => {
+  if(typeof x === 'object' && x instanceof Array) {
+    return x;
+  } else {
+    decodingError("Expected Array");
+  }
+};
+
 /// Record decoding
 
 exports.recordInfoCons = label => decodeItem => next => ({ label, decodeItem, next });

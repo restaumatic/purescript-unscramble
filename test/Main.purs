@@ -5,7 +5,7 @@ import Prelude
 import Effect
 import Data.Tuple (Tuple(..))
 import Data.Maybe (Maybe(..), maybe)
-import Unscramble (decodeJSON, class Decode)
+import Unscramble (decodeJSON, class Decode, class FromJSONKey, defaultFromJSONKeyValue)
 import Effect.Aff (Aff, launchAff_)
 import Test.Spec.Reporter (consoleReporter)
 import Test.Spec.Runner (runSpec)
@@ -13,8 +13,19 @@ import Test.Spec
 import Test.Spec.Assertions
 import Foreign.Object as Object
 import Data.Set as Set
+import Data.Map as Map
 
 type TestRecord = { a :: Int, b :: Int }
+
+newtype ValueKey = ValueKey String
+
+derive newtype instance eqValueKey :: Eq ValueKey
+derive newtype instance showValueKey :: Show ValueKey
+derive newtype instance ordValueKey :: Ord ValueKey
+derive newtype instance decodeValueKey :: Decode ValueKey
+
+instance fromJSONKeyValueKey :: FromJSONKey ValueKey where
+  fromJSONKey = defaultFromJSONKeyValue
 
 main :: Effect Unit
 main = launchAff_ $ runSpec [consoleReporter] do
@@ -75,5 +86,21 @@ main = launchAff_ $ runSpec [consoleReporter] do
       testDecode """ "foo" """ (Nothing :: Maybe (Maybe Int))
       testDecode """ {} """ (Just { a: Nothing :: Maybe Int })
 
+    describe "Tuple" do
+      testDecode """ [1,"foo"] """ (Just (Tuple 1 "foo"))
+      testDecode """ "foo" """ (Nothing :: Maybe (Tuple Int String))
+
     describe "array of records" do
       testDecode """ [ { "a": 1, "b": 2 }, { "a":3, "b":4 } ] """ (Just [{ a: 1, b: 2 }, { a: 3, b: 4 }])
+
+    describe "Map - string keys" do
+      testDecode "{}" (Just Map.empty :: Maybe (Map.Map String Int))
+      testDecode """ { "a": 1, "b": 2 } """ (Just (Map.fromFoldable [ Tuple "a" 1, Tuple "b" 2 ]))
+      testDecode "1" (Nothing :: Maybe (Map.Map String Int))
+      testDecode "[]" (Nothing :: Maybe (Map.Map String Int))
+
+    describe "Map - value keys" do
+      testDecode "[]" (Just Map.empty :: Maybe (Map.Map ValueKey Int))
+      testDecode """ [["a", 1], ["b", 2]] """ (Just (Map.fromFoldable [ Tuple (ValueKey "a") 1, Tuple (ValueKey "b") 2 ]))
+      testDecode "1" (Nothing :: Maybe (Map.Map ValueKey Int))
+      testDecode "{}" (Nothing :: Maybe (Map.Map ValueKey Int))
