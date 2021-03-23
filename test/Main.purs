@@ -61,3 +61,10 @@ main = launchAff_ $ runSpec [consoleReporter] do
       testDecode """ { "a": 1, "b": 2 } """ (Just { a: 1, b: 2 })
       testDecode """ { "a": 1, "b": 2, "c": 3 } """ (Just { a: 1, b: 2 })
       testDecode """ { "a": 1 } """ (Nothing :: Maybe TestRecord)
+      testDecode """ { "a": 1, "b": [] } """ (Nothing :: Maybe TestRecord)
+
+    describe "Maybe" do
+      testDecode """ null """ (Just (Nothing :: Maybe Int))
+      testDecode """ 1 """ (Just (Just 1 :: Maybe Int))
+      testDecode """ "foo" """ (Nothing :: Maybe (Maybe Int))
+      testDecode """ {} """ (Just { a: Nothing :: Maybe Int })

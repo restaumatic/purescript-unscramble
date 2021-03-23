@@ -44,6 +44,15 @@ instance decode_Object :: Decode a => Decode (Object a) where
 instance decode_Record :: (RL.RowToList r rl, DecodeRecord rl) => Decode (Record r) where
   unsafeDecode = decodeRecord (recordInfo (RLProxy :: RLProxy rl))
 
+instance decode_Maybe :: Decode a => Decode (Maybe a) where
+  unsafeDecode =
+    let decode = unsafeDecode
+    in \value ->
+      if isNull value || isUndefined value then
+        Nothing
+      else
+        Just (decode value)
+
 -- Internal and very unsafe - TODO: move to Internal
 
 foreign import data RecordInfo :: Type
