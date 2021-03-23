@@ -33,7 +33,14 @@ jobs:
             - .psc-package
           key: v1-dependencies-{{ checksum "package.json" }}-{{ checksum "psc-package.json" }}
         
-      # run tests!
-      - run: |
-          export GHCRTS=-N2 # limit purs parallelism
-          npm test
+      - run:
+          name: tests
+          command: |
+            export GHCRTS=-N2
+            npm test
+        
+      - run:
+          name: benchmark
+          command: |
+            export GHCRTS=-N2
+            npm run bench
