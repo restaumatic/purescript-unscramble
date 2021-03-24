@@ -2,6 +2,7 @@ module Bench.Micro where
 
 import Prelude
 import Unscramble as U
+import Unscramble.Generic as U
 import Unscramble.Enum as U
 import Foreign.Generic as F
 import Foreign.Generic.EnumEncoding as F
@@ -304,11 +305,38 @@ genEnum30 n =
     29 -> E30_29
     _ -> E30_30
 
+newtype GenericWrapper a = GenericWrapper a
+
+unwrap :: forall a. GenericWrapper a -> a
+unwrap (GenericWrapper x) = x
+
+foreignGenericOpts :: F.Options
+foreignGenericOpts = F.defaultOptions { unwrapSingleConstructors = true }
+
+instance encodeGenericWrapperF :: (Generic a rep, F.GenericEncode rep) => F.Encode (GenericWrapper a) where
+  encode = F.genericEncode foreignGenericOpts <<< unwrap
+
+instance decodeGenericWrapperU :: (Generic a rep, U.GenericDecode rep) => U.Decode (GenericWrapper a) where
+  unsafeDecode = GenericWrapper <<< U.genericUnsafeDecode U.defaultOptions
+
+instance decodeGenericWrapperF :: (Generic a rep, F.GenericDecode rep) => F.Decode (GenericWrapper a) where
+  decode = F.genericDecode foreignGenericOpts <<< unwrap
+
+genGeneric g n = GenericWrapper (g n)
+
 allDecoders = [ unscramble, foreignGeneric, simpleJson ]
 genericDecoders = [ unscramble, foreignGeneric ]
 
 main :: Effect Unit
 main = do
+  test "R3" genR3 allDecoders
+  test "R10" genR10 allDecoders
+  test "R30" genR30 allDecoders
+
+  test "Generic R3"  (genGeneric genR3 ) genericDecoders
+  test "Generic R10" (genGeneric genR10) genericDecoders
+  test "Generic R30" (genGeneric genR30) genericDecoders
+
   test "Int" (\i -> i) allDecoders
   test "Array(100) Int" (genArray 100 \i -> i) allDecoders
   test "Array(1000) Int" (genArray 100 \i -> i) allDecoders
@@ -325,9 +353,6 @@ main = do
   test "Array(1000)" (genArray 1000 genValue) allDecoders
   test "Array(10000)" (genArray 10000 genValue) allDecoders
 
-  test "R3" genR3 allDecoders
   test "Array(100) R3" (genArray 100 genR3) allDecoders
-  test "R10" genR10 allDecoders
   test "Array(100) R10" (genArray 100 genR10) allDecoders
-  test "R30" genR30 allDecoders
   test "Array(100) R30" (genArray 100 genR30) allDecoders

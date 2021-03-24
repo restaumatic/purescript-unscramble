@@ -21,7 +21,6 @@ genericUnsafeDecodeEnum opts =
       Just x ->
         to x
 
--- No options supported yet
 type EnumOptions = { constructorTagTransform :: String -> String }
 
 defaultEnumOptions :: EnumOptions

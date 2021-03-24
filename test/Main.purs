@@ -6,6 +6,7 @@ import Effect
 import Data.Tuple (Tuple(..))
 import Data.Maybe (Maybe(..), maybe)
 import Unscramble (decodeJSON, class Decode, class FromJSONKey, defaultFromJSONKeyValue)
+import Unscramble.Generic
 import Unscramble.Enum (genericUnsafeDecodeEnum, defaultEnumOptions)
 import Effect.Aff (Aff, launchAff_)
 import Test.Spec.Reporter (consoleReporter)
@@ -38,6 +39,33 @@ instance showEnum :: Show Enum where
   show = genericShow
 instance decodeEnum :: Decode Enum where
   unsafeDecode = genericUnsafeDecodeEnum defaultEnumOptions
+
+newtype SingleConstructor a = SingleConstructor a
+
+derive instance genericSingleConstructor :: Generic (SingleConstructor a) _
+derive instance eqSingleConstructor :: Eq a => Eq (SingleConstructor a)
+instance showSingleConstructor :: Show a => Show (SingleConstructor a) where
+  show = genericShow
+instance decodeSingleConstructor :: Decode a => Decode (SingleConstructor a) where
+  unsafeDecode = genericUnsafeDecode defaultOptions
+
+data Sum = NoArgs | SingleArg Int | SingleRecordArg TestRecord | ManyArgs TestRecord Int | ThreeArgs Int Int Int
+
+derive instance genericSum :: Generic Sum _
+derive instance eqSum :: Eq Sum
+instance showSum :: Show Sum where
+  show = genericShow
+instance decodeSum :: Decode Sum where
+  unsafeDecode = genericUnsafeDecode defaultOptions
+
+data SingleConManyArgs = SingleConManyArgs String Int
+
+derive instance genericSingleConManyArgs :: Generic SingleConManyArgs _
+derive instance eqSingleConManyArgs :: Eq SingleConManyArgs
+instance showSingleConManyArgs :: Show SingleConManyArgs where
+  show = genericShow
+instance decodeSingleConManyArgs :: Decode SingleConManyArgs where
+  unsafeDecode = genericUnsafeDecode defaultOptions
 
 main :: Effect Unit
 main = launchAff_ $ runSpec [consoleReporter] do
@@ -124,3 +152,27 @@ main = launchAff_ $ runSpec [consoleReporter] do
       testDecode """ "D" """ (Nothing :: Maybe Enum)
       testDecode """ 1 """ (Nothing :: Maybe Enum)
       testDecode """ {} """ (Nothing :: Maybe Enum)
+
+    describe "Generic" do
+      describe "General sum types" do
+        testDecode """ { "tag": "NoArgs" } """ (Just NoArgs)
+        testDecode """ { "tag": "SingleArg", "contents": 1 } """ (Just (SingleArg 1))
+        testDecode """ { "tag": "SingleRecordArg", "a": 1, "b": 2 } """ (Just (SingleRecordArg { a: 1, b: 2 }))
+        testDecode """ { "tag": "ManyArgs", "contents": [{ "a": 1, "b": 2 }, 3] } """ (Just (ManyArgs { a: 1, b: 2 } 3))
+        testDecode """ { "tag": "ThreeArgs", "contents": [1, 2, 3] } """ (Just (ThreeArgs 1 2 3))
+        testDecode """ {} """ (Nothing :: Maybe Sum)
+        testDecode """ { "tag": "SingleArg" } """ (Nothing :: Maybe Sum)
+        testDecode """ { "tag": "SingleRecordArg" } """ (Nothing :: Maybe Sum)
+        testDecode """ { "tag": "SingleRecordArg", "a": 1, "b": "junk" } """ (Nothing :: Maybe Sum)
+        testDecode """ { "tag": "ManyArgs" } """ (Nothing :: Maybe Sum)
+        testDecode """ { "tag": "ManyArgs", "contents": [] } """ (Nothing :: Maybe Sum)
+        testDecode """ { "tag": "ManyArgs", "contents": [{ "a": 1, "b": 2 }, 3, 4] } """ (Nothing :: Maybe Sum)
+        testDecode """ { "tag": "ManyArgs", "contents": [{ "a": 1, "b": 2 }] } """ (Nothing :: Maybe Sum)
+        testDecode """ { "tag": "ManyArgs", "contents": [{ "a": 1, "b": "junk" }, 3] } """ (Nothing :: Maybe Sum)
+
+      describe "Single constructor, single argument" do
+        testDecode """ 1 """ (Just (SingleConstructor 1))
+        testDecode """ { "a": 1 } """ (Just (SingleConstructor { a: 1 }))
+
+      describe "Single constructor, many arguments" do
+        testDecode """ ["foo", 2] """ (Just (SingleConManyArgs "foo" 2))
