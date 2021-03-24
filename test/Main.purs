@@ -6,6 +6,7 @@ import Effect
 import Data.Tuple (Tuple(..))
 import Data.Maybe (Maybe(..), maybe)
 import Unscramble (decodeJSON, class Decode, class FromJSONKey, defaultFromJSONKeyValue)
+import Unscramble.Enum (genericUnsafeDecodeEnum, defaultEnumOptions)
 import Effect.Aff (Aff, launchAff_)
 import Test.Spec.Reporter (consoleReporter)
 import Test.Spec.Runner (runSpec)
@@ -14,6 +15,8 @@ import Test.Spec.Assertions
 import Foreign.Object as Object
 import Data.Set as Set
 import Data.Map as Map
+import Data.Generic.Rep
+import Data.Generic.Rep.Show
 
 type TestRecord = { a :: Int, b :: Int }
 
@@ -26,6 +29,15 @@ derive newtype instance decodeValueKey :: Decode ValueKey
 
 instance fromJSONKeyValueKey :: FromJSONKey ValueKey where
   fromJSONKey = defaultFromJSONKeyValue
+
+data Enum = A | B | C
+
+derive instance genericEnum :: Generic Enum _
+derive instance eqEnum :: Eq Enum
+instance showEnum :: Show Enum where
+  show = genericShow
+instance decodeEnum :: Decode Enum where
+  unsafeDecode = genericUnsafeDecodeEnum defaultEnumOptions
 
 main :: Effect Unit
 main = launchAff_ $ runSpec [consoleReporter] do
@@ -104,3 +116,11 @@ main = launchAff_ $ runSpec [consoleReporter] do
       testDecode """ [["a", 1], ["b", 2]] """ (Just (Map.fromFoldable [ Tuple (ValueKey "a") 1, Tuple (ValueKey "b") 2 ]))
       testDecode "1" (Nothing :: Maybe (Map.Map ValueKey Int))
       testDecode "{}" (Nothing :: Maybe (Map.Map ValueKey Int))
+
+    describe "Enum" do
+      testDecode """ "A" """ (Just A)
+      testDecode """ "B" """ (Just B)
+      testDecode """ "C" """ (Just C)
+      testDecode """ "D" """ (Nothing :: Maybe Enum)
+      testDecode """ 1 """ (Nothing :: Maybe Enum)
+      testDecode """ {} """ (Nothing :: Maybe Enum)
