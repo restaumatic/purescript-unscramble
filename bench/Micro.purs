@@ -14,6 +14,7 @@ import Data.List.NonEmpty as NE
 import Data.Tuple
 import Data.Foldable
 import Data.Array as Array
+import Simple.JSON as SJ
 
 -- A value which should have negligible decoding overhead.
 newtype Value = Value Foreign
@@ -21,6 +22,7 @@ newtype Value = Value Foreign
 derive newtype instance encodeValue :: F.Encode Value
 derive newtype instance decodeValueU :: U.Decode Value
 derive newtype instance decodeValueF :: F.Decode Value
+derive newtype instance decodeValueSJ :: SJ.ReadForeign Value
 instance eqValue :: Eq Value where
   eq (Value x) (Value y) = F.encodeJSON x == F.encodeJSON y
 
@@ -39,6 +41,7 @@ genValue _ = def
 derive newtype instance encodeR3 :: F.Encode R3
 derive newtype instance decodeR3U :: U.Decode R3
 derive newtype instance decodeR3F :: F.Decode R3
+derive newtype instance decodeR3SJ :: SJ.ReadForeign R3
 derive instance eqR3 :: Eq R3
 
 newtype R10 = R10
@@ -57,6 +60,7 @@ newtype R10 = R10
 derive newtype instance encodeR10 :: F.Encode R10
 derive newtype instance decodeR10U :: U.Decode R10
 derive newtype instance decodeR10F :: F.Decode R10
+derive newtype instance decodeR10SJ :: SJ.ReadForeign R10
 derive instance eqR10 :: Eq R10
 
 newtype R30 = R30
@@ -95,6 +99,7 @@ newtype R30 = R30
 derive newtype instance encodeR30 :: F.Encode R30
 derive newtype instance decodeR30U :: U.Decode R30
 derive newtype instance decodeR30F :: F.Decode R30
+derive newtype instance decodeR30SJ :: SJ.ReadForeign R30
 derive instance eqR30 :: Eq R30
 
 foreign import measure :: forall a. String -> (Unit -> a) -> Effect Unit
@@ -106,6 +111,9 @@ unscramble = Tuple "Unscramble" U.decodeEither
 
 foreignGeneric :: forall a. F.Decode a => Decoder a
 foreignGeneric = Tuple "Foreign.Generic" (either (Left <<< renderForeignError <<< NE.head) Right <<< runExcept <<< F.decode)
+
+simpleJson :: forall a. SJ.ReadForeign a => Decoder a
+simpleJson = Tuple "Simple.JSON" (either (Left <<< renderForeignError <<< NE.head) Right <<< SJ.read)
 
 test :: forall a. F.Encode a => String -> (Int -> a) -> Array (Decoder a) -> Effect Unit
 test name generator decoders = do
@@ -177,14 +185,16 @@ genR30 _ = R30
 genArray :: forall a. Int -> (Int -> a) -> Int -> Array a
 genArray n gen _ = gen <$> Array.range 0 n
 
+allGenerators = [ unscramble, foreignGeneric, simpleJson ]
+
 main :: Effect Unit
 main = do
-  test "Array(100)" (genArray 100 genValue) [unscramble, foreignGeneric]
-  test "Array(1000)" (genArray 1000 genValue) [unscramble, foreignGeneric]
-  test "Array(10000)" (genArray 10000 genValue) [unscramble, foreignGeneric]
+  test "Array(100)" (genArray 100 genValue) allGenerators
+  test "Array(1000)" (genArray 1000 genValue) allGenerators
+  test "Array(10000)" (genArray 10000 genValue) allGenerators
 
-  test "R3" genR3 [unscramble, foreignGeneric]
-  test "R10" genR10 [unscramble, foreignGeneric]
-  test "Array(100) R10" (genArray 100 genR10) [unscramble, foreignGeneric]
-  test "R30" genR30 [unscramble, foreignGeneric]
-  test "Array(100) R30" (genArray 100 genR30) [unscramble, foreignGeneric]
+  test "R3" genR3 allGenerators
+  test "R10" genR10 allGenerators
+  test "Array(100) R10" (genArray 100 genR10) allGenerators
+  test "R30" genR30 allGenerators
+  test "Array(100) R30" (genArray 100 genR30) allGenerators

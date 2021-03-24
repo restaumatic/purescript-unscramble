@@ -8,6 +8,7 @@
     "generics-rep",
     "foreign-object",
     "ordered-collections",
+    "simple-json",
 
     "console",
     "foreign-generic",
