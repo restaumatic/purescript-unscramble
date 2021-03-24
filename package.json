@@ -4,7 +4,8 @@
     "postinstall": "scripts/install-purescript v0.13.8 && psc-package install",
     "test": "pulp --psc-package test",
     "test-w": "pulp --psc-package -w test",
-    "bench": "pulp --psc-package run -I bench --main Bench.Main"
+    "bench": "pulp --psc-package run -I bench --main Bench.Main",
+    "bench-micro": "pulp --psc-package run -I bench --main Bench.Micro"
   },
   "devDependencies": {
     "psc-package": "^3.0.1",

@@ -44,3 +44,4 @@ jobs:
           command: |
             export GHCRTS=-N2
             npm run bench
+            npm run bench-micro
