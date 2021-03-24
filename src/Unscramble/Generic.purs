@@ -4,13 +4,15 @@ import Prelude
 
 import Unscramble
 import Foreign
+import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Data.Symbol (class IsSymbol, reflectSymbol, SProxy(..))
-import Data.Generic.Rep (class Generic, Argument(..), Constructor(..), NoArguments(..), Product, Sum(..), from, to)
+import Data.Generic.Rep (class Generic, Argument(..), Constructor(..), NoArguments(..), Product(..), Sum(..), from, to)
 import Foreign.Object as Object
 import Unsafe.Coerce (unsafeCoerce)
 import Prim.RowList as RL
+import Partial.Unsafe (unsafePartial)
 
 genericUnsafeDecode :: forall a rep. Generic a rep => GenericDecode rep => Options -> Foreign -> a
 genericUnsafeDecode opts = to <<< genericDecoder opts
@@ -68,11 +70,30 @@ class GenericDecodeArgs a where
 instance genericDecodeArgsNoArguments :: GenericDecodeArgs NoArguments where
   genericDecodeArgs _ = NoArguments
 
-instance genericDecodeArgsSingleArg :: Decode a => GenericDecodeArgs (Argument a) where
+else instance genericDecodeArgsSingleArg :: Decode a => GenericDecodeArgs (Argument a) where
   genericDecodeArgs = Argument <<< unsafeDecode
 
-instance genericDecodeArgsProduct :: GenericDecodeArgs (Product a b) where
-  genericDecodeArgs _ = decodingError "TODO: unimplemented"
+else instance genericDecodeArgsManyArgs :: GenericDecodeManyArgs args => GenericDecodeArgs args where
+  genericDecodeArgs =
+    let Tuple numArgs decode = argsDecoder :: Tuple Int (Int -> Array Foreign -> args)
+    in \value ->
+      let array = expectArray value
+      in if Array.length array == numArgs then
+           decode 0 array
+         else
+           decodingError "Invalid number of constructor arguments"
+
+class GenericDecodeManyArgs a where
+  argsDecoder :: Tuple Int (Int -> Array Foreign -> a)
+
+instance genericDecodeManyArgsProduct :: (GenericDecodeManyArgs a, GenericDecodeManyArgs b) => GenericDecodeManyArgs (Product a b) where
+  argsDecoder =
+    let Tuple args1 decode1 = argsDecoder :: Tuple Int (Int -> Array Foreign -> a)
+        Tuple args2 decode2 = argsDecoder :: Tuple Int (Int -> Array Foreign -> b)
+    in Tuple (args1 + args2) (\offset array -> Product (decode1 offset array) (decode2 (offset + args1) array))
+
+instance genericDecodeManyArgsArgument :: Decode a => GenericDecodeManyArgs (Argument a) where
+  argsDecoder = Tuple 1 (\offset array -> Argument (unsafeDecode (unsafePartial (Array.unsafeIndex array offset))))
 
 instance genericDecodeSum :: (GenericDecodeSum a, GenericDecodeSum b) => GenericDecodeSum (Sum a b) where
   genericSumDecoder opts =
