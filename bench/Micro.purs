@@ -2,7 +2,9 @@ module Bench.Micro where
 
 import Prelude
 import Unscramble as U
+import Unscramble.Enum as U
 import Foreign.Generic as F
+import Foreign.Generic.EnumEncoding as F
 import Effect
 import Foreign
 import Data.Maybe
@@ -15,6 +17,7 @@ import Data.Tuple
 import Data.Foldable
 import Data.Array as Array
 import Simple.JSON as SJ
+import Data.Generic.Rep
 
 -- A value which should have negligible decoding overhead.
 newtype Value = Value Foreign
@@ -102,6 +105,30 @@ derive newtype instance decodeR30F :: F.Decode R30
 derive newtype instance decodeR30SJ :: SJ.ReadForeign R30
 derive instance eqR30 :: Eq R30
 
+data Enum3 = E3_1 | E3_2 | E3_3
+
+derive instance genericEnum3 :: Generic Enum3 _
+instance encodeEnum3 :: F.Encode Enum3 where encode = F.genericEncodeEnum F.defaultGenericEnumOptions
+instance decodeEnum3U :: U.Decode Enum3 where unsafeDecode = U.genericUnsafeDecodeEnum U.defaultEnumOptions
+instance decodeEnum3F :: F.Decode Enum3 where decode = F.genericDecodeEnum F.defaultGenericEnumOptions
+
+data Enum10
+  = E10_1
+  | E10_2
+  | E10_3
+  | E10_4
+  | E10_5
+  | E10_6
+  | E10_7
+  | E10_8
+  | E10_9
+  | E10_10
+
+derive instance genericEnum10 :: Generic Enum10 _
+instance encodeEnum10 :: F.Encode Enum10 where encode = F.genericEncodeEnum F.defaultGenericEnumOptions
+instance decodeEnum10U :: U.Decode Enum10 where unsafeDecode = U.genericUnsafeDecodeEnum U.defaultEnumOptions
+instance decodeEnum10F :: F.Decode Enum10 where decode = F.genericDecodeEnum F.defaultGenericEnumOptions
+
 foreign import measure :: forall a. String -> (Unit -> a) -> Effect Unit
 
 type Decoder a = Tuple String (Foreign -> Either String a)
@@ -185,16 +212,44 @@ genR30 _ = R30
 genArray :: forall a. Int -> (Int -> a) -> Int -> Array a
 genArray n gen _ = gen <$> Array.range 0 n
 
-allGenerators = [ unscramble, foreignGeneric, simpleJson ]
+genEnum3 :: Int -> Enum3
+genEnum3 n =
+  case n `mod` 3 of
+    1 -> E3_1
+    2 -> E3_2
+    _ -> E3_3
+
+genEnum10 :: Int -> Enum10
+genEnum10 n =
+  case n `mod` 10 of
+    1 -> E10_1
+    2 -> E10_2
+    3 -> E10_3
+    4 -> E10_4
+    5 -> E10_5
+    6 -> E10_6
+    7 -> E10_7
+    8 -> E10_8
+    9 -> E10_9
+    _ -> E10_10
+
+allDecoders = [ unscramble, foreignGeneric, simpleJson ]
+genericDecoders = [ unscramble, foreignGeneric ]
 
 main :: Effect Unit
 main = do
-  test "Array(100)" (genArray 100 genValue) allGenerators
-  test "Array(1000)" (genArray 1000 genValue) allGenerators
-  test "Array(10000)" (genArray 10000 genValue) allGenerators
+  test "Enum3" genEnum3 genericDecoders
+  test "Array(100) Enum3" (genArray 100 genEnum3) genericDecoders
 
-  test "R3" genR3 allGenerators
-  test "R10" genR10 allGenerators
-  test "Array(100) R10" (genArray 100 genR10) allGenerators
-  test "R30" genR30 allGenerators
-  test "Array(100) R30" (genArray 100 genR30) allGenerators
+  test "Enum10" genEnum10 genericDecoders
+  test "Array(100) Enum10" (genArray 100 genEnum10) genericDecoders
+
+  test "Array(100)" (genArray 100 genValue) allDecoders
+  test "Array(1000)" (genArray 1000 genValue) allDecoders
+  test "Array(10000)" (genArray 10000 genValue) allDecoders
+
+  test "R3" genR3 allDecoders
+  test "R10" genR10 allDecoders
+  test "Array(100) R10" (genArray 100 genR10) allDecoders
+  test "R30" genR30 allDecoders
+  test "Array(100) R30" (genArray 100 genR30) allDecoders
