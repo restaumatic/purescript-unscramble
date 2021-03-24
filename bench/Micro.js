@@ -16,5 +16,12 @@ exports.measure = name => action => () => {
   const total = performance.now() - start;
   const duration = total / count;
 //  console.log(name + ': ' + count + ' in ' + total.toFixed(3) + 'ms');
-  console.log(name + ': ' + duration.toFixed(6) + 'ms/op');
+  console.log(rpad(40, name) + ': ' + duration.toFixed(6) + 'ms/op');
 };
+
+function rpad(n, s) {
+  while(s.length < n) {
+    s += ' ';
+  }
+  return s;
+}

@@ -42,6 +42,7 @@ def = Value (F.encode 1)
 genValue :: Int -> Value
 genValue _ = def
 
+derive instance genericR3 :: Generic R3 _
 derive newtype instance encodeR3 :: F.Encode R3
 derive newtype instance decodeR3U :: U.Decode R3
 derive newtype instance decodeR3F :: F.Decode R3
@@ -61,6 +62,7 @@ newtype R10 = R10
   , f10 :: Value
   }
 
+derive instance genericR10 :: Generic R10 _
 derive newtype instance encodeR10 :: F.Encode R10
 derive newtype instance decodeR10U :: U.Decode R10
 derive newtype instance decodeR10F :: F.Decode R10
@@ -100,6 +102,7 @@ newtype R30 = R30
   , f30 :: Value
   }
 
+derive instance genericR30 :: Generic R30 _
 derive newtype instance encodeR30 :: F.Encode R30
 derive newtype instance decodeR30U :: U.Decode R30
 derive newtype instance decodeR30F :: F.Decode R30
@@ -166,6 +169,66 @@ derive instance genericEnum30 :: Generic Enum30 _
 instance encodeEnum30 :: F.Encode Enum30 where encode = F.genericEncodeEnum F.defaultGenericEnumOptions
 instance decodeEnum30U :: U.Decode Enum30 where unsafeDecode = U.genericUnsafeDecodeEnum U.defaultEnumOptions
 instance decodeEnum30F :: F.Decode Enum30 where decode = F.genericDecodeEnum F.defaultGenericEnumOptions
+
+type SumArg = { value :: Value }
+
+sumArg :: SumArg
+sumArg = { value: def }
+
+data Sum3
+  = S3_1 SumArg
+  | S3_2 SumArg
+  | S3_3 SumArg
+
+derive instance genericSum3 :: Generic Sum3 _
+
+data Sum10
+  = S10_1 SumArg
+  | S10_2 SumArg
+  | S10_3 SumArg
+  | S10_4 SumArg
+  | S10_5 SumArg
+  | S10_6 SumArg
+  | S10_7 SumArg
+  | S10_8 SumArg
+  | S10_9 SumArg
+  | S10_10 SumArg
+
+derive instance genericSum10 :: Generic Sum10 _
+
+data Sum30
+  = S30_1 SumArg
+  | S30_2 SumArg
+  | S30_3 SumArg
+  | S30_4 SumArg
+  | S30_5 SumArg
+  | S30_6 SumArg
+  | S30_7 SumArg
+  | S30_8 SumArg
+  | S30_9 SumArg
+  | S30_10 SumArg
+  | S30_11 SumArg
+  | S30_12 SumArg
+  | S30_13 SumArg
+  | S30_14 SumArg
+  | S30_15 SumArg
+  | S30_16 SumArg
+  | S30_17 SumArg
+  | S30_18 SumArg
+  | S30_19 SumArg
+  | S30_20 SumArg
+  | S30_21 SumArg
+  | S30_22 SumArg
+  | S30_23 SumArg
+  | S30_24 SumArg
+  | S30_25 SumArg
+  | S30_26 SumArg
+  | S30_27 SumArg
+  | S30_28 SumArg
+  | S30_29 SumArg
+  | S30_30 SumArg
+
+derive instance genericSum30 :: Generic Sum30 _
 
 foreign import measure :: forall a. String -> (Unit -> a) -> Effect Unit
 
@@ -273,7 +336,7 @@ genEnum10 n =
 
 genEnum30 :: Int -> Enum30
 genEnum30 n =
-  case n `mod` 10 of
+  case n `mod` 30 of
     1 -> E30_1
     2 -> E30_2
     3 -> E30_3
@@ -320,7 +383,64 @@ instance decodeGenericWrapperU :: (Generic a rep, U.GenericDecode rep) => U.Deco
   unsafeDecode = GenericWrapper <<< U.genericUnsafeDecode U.defaultOptions
 
 instance decodeGenericWrapperF :: (Generic a rep, F.GenericDecode rep) => F.Decode (GenericWrapper a) where
-  decode = F.genericDecode foreignGenericOpts <<< unwrap
+  decode = map GenericWrapper <<< F.genericDecode foreignGenericOpts
+
+
+genSum3 :: Int -> Sum3
+genSum3 n =
+  case n `mod` 3 of
+    1 -> S3_1 sumArg
+    2 -> S3_2 sumArg
+    _ -> S3_3 sumArg
+
+genSum10 :: Int -> Sum10
+genSum10 n =
+  case n `mod` 10 of
+    1 -> S10_1 sumArg
+    2 -> S10_2 sumArg
+    3 -> S10_3 sumArg
+    4 -> S10_4 sumArg
+    5 -> S10_5 sumArg
+    6 -> S10_6 sumArg
+    7 -> S10_7 sumArg
+    8 -> S10_8 sumArg
+    9 -> S10_9 sumArg
+    _ -> S10_10 sumArg
+
+genSum30 :: Int -> Sum30
+genSum30 n =
+  case n `mod` 30 of
+    1 -> S30_1 sumArg
+    2 -> S30_2 sumArg
+    3 -> S30_3 sumArg
+    4 -> S30_4 sumArg
+    5 -> S30_5 sumArg
+    6 -> S30_6 sumArg
+    7 -> S30_7 sumArg
+    8 -> S30_8 sumArg
+    9 -> S30_9 sumArg
+    10 -> S30_10 sumArg
+    11 -> S30_11 sumArg
+    12 -> S30_12 sumArg
+    13 -> S30_13 sumArg
+    14 -> S30_14 sumArg
+    15 -> S30_15 sumArg
+    16 -> S30_16 sumArg
+    17 -> S30_17 sumArg
+    18 -> S30_18 sumArg
+    19 -> S30_19 sumArg
+    20 -> S30_20 sumArg
+    21 -> S30_21 sumArg
+    22 -> S30_22 sumArg
+    23 -> S30_23 sumArg
+    24 -> S30_24 sumArg
+    25 -> S30_25 sumArg
+    26 -> S30_26 sumArg
+    27 -> S30_27 sumArg
+    28 -> S30_28 sumArg
+    29 -> S30_29 sumArg
+    _  -> S30_30 sumArg
+
 
 genGeneric g n = GenericWrapper (g n)
 
@@ -329,6 +449,12 @@ genericDecoders = [ unscramble, foreignGeneric ]
 
 main :: Effect Unit
 main = do
+  test "Generic Sum3"  (genGeneric genSum3 ) genericDecoders
+  test "Generic Sum10" (genGeneric genSum10) genericDecoders
+  test "Generic Sum30" (genGeneric genSum30) genericDecoders
+
+  test "Array(100) Generic Sum10" (genArray 100 (genGeneric genSum10)) genericDecoders
+
   test "R3" genR3 allDecoders
   test "R10" genR10 allDecoders
   test "R30" genR30 allDecoders
