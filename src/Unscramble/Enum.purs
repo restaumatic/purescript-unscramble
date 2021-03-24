@@ -10,7 +10,7 @@ import Data.Symbol (class IsSymbol, reflectSymbol, SProxy(..))
 import Data.Generic.Rep (class Generic, Argument, Constructor(..), NoArguments(..), Product, Sum(..), from, to)
 import Foreign.Object as Object
 
-genericUnsafeDecodeEnum :: forall a rep. Generic a rep => EnumConstructors rep => Partial => EnumOptions -> Foreign -> a
+genericUnsafeDecodeEnum :: forall a rep. Generic a rep => EnumConstructors rep => EnumOptions -> Foreign -> a
 genericUnsafeDecodeEnum opts =
   let constructors = Object.fromFoldable (enumConstructors opts :: Array (Tuple String rep))
   in \value ->

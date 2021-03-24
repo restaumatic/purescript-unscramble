@@ -17,18 +17,18 @@ import Data.Set as Set
 import Data.Map as Map
 
 decode :: forall a. Decode a => Foreign -> Maybe a
-decode value = catchDecodingError (unsafeDecode value)
+decode value = catchDecodingError (\_ -> unsafeDecode value)
 
 decodeEither :: forall a. Decode a => Foreign -> Either String a
-decodeEither value = catchDecodingErrorEither (unsafeDecode value)
+decodeEither value = catchDecodingErrorEither (\_ -> unsafeDecode value)
 
 decodeJSON :: forall a. Decode a => String -> Maybe a
-decodeJSON value = catchDecodingError (unsafeDecode (unsafeParseJSON value))
+decodeJSON value = catchDecodingError (\_ -> unsafeDecode (unsafeParseJSON value))
 
-foreign import decodingError :: forall a. Partial => String -> a
+foreign import decodingError :: forall a. String -> a
 
 class Decode a where
-  unsafeDecode :: Partial => Foreign -> a
+  unsafeDecode :: Foreign -> a
 
 instance decode_Foreign :: Decode Foreign where
   unsafeDecode x = x
@@ -81,7 +81,7 @@ instance fromJSONKeyString :: FromJSONKey String where
 defaultFromJSONKeyValue :: forall k. Decode k => FromJSONKeyFunction k
 defaultFromJSONKeyValue = FromJSONKeyValue unsafeDecode
 
-data FromJSONKeyFunction k = FromJSONKeyString (Partial => String -> k) | FromJSONKeyValue (Partial => Foreign -> k)
+data FromJSONKeyFunction k = FromJSONKeyString (String -> k) | FromJSONKeyValue (Foreign -> k)
 
 instance decode_Map :: (FromJSONKey k, Ord k, Decode v) => Decode (Map.Map k v) where
   unsafeDecode v =
@@ -99,7 +99,7 @@ foreign import recordInfoCons :: forall a. String -> (Foreign -> a) -> RecordInf
 foreign import decodeRecord :: forall r. RecordInfo -> Foreign -> Record r
 
 class DecodeRecord rl where
-  recordInfo :: Partial => RLProxy rl -> RecordInfo
+  recordInfo :: RLProxy rl -> RecordInfo
 
 instance decodeRecordNil :: DecodeRecord RL.Nil where
   recordInfo _ = recordInfoNil
@@ -120,10 +120,10 @@ foreign import expectObject :: Foreign -> Object Foreign
 foreign import expectArray :: Foreign -> Array Foreign
 foreign import unsafeParseJSON :: String -> Foreign
 
-catchDecodingError :: forall a. (Partial => a) -> Maybe a
+catchDecodingError :: forall a. (Unit -> a) -> Maybe a
 catchDecodingError = catchDecodingErrorImpl (\_ -> Nothing) Just
 
-catchDecodingErrorEither :: forall a. (Partial => a) -> Either String a
+catchDecodingErrorEither :: forall a. (Unit -> a) -> Either String a
 catchDecodingErrorEither = catchDecodingErrorImpl Left Right
 
-foreign import catchDecodingErrorImpl :: forall a r. (String -> r) -> (a -> r) -> (Partial => a) -> r
+foreign import catchDecodingErrorImpl :: forall a r. (String -> r) -> (a -> r) -> (Unit -> a) -> r
