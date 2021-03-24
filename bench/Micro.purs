@@ -129,6 +129,43 @@ instance encodeEnum10 :: F.Encode Enum10 where encode = F.genericEncodeEnum F.de
 instance decodeEnum10U :: U.Decode Enum10 where unsafeDecode = U.genericUnsafeDecodeEnum U.defaultEnumOptions
 instance decodeEnum10F :: F.Decode Enum10 where decode = F.genericDecodeEnum F.defaultGenericEnumOptions
 
+data Enum30
+  = E30_1
+  | E30_2
+  | E30_3
+  | E30_4
+  | E30_5
+  | E30_6
+  | E30_7
+  | E30_8
+  | E30_9
+  | E30_10
+  | E30_11
+  | E30_12
+  | E30_13
+  | E30_14
+  | E30_15
+  | E30_16
+  | E30_17
+  | E30_18
+  | E30_19
+  | E30_20
+  | E30_21
+  | E30_22
+  | E30_23
+  | E30_24
+  | E30_25
+  | E30_26
+  | E30_27
+  | E30_28
+  | E30_29
+  | E30_30
+
+derive instance genericEnum30 :: Generic Enum30 _
+instance encodeEnum30 :: F.Encode Enum30 where encode = F.genericEncodeEnum F.defaultGenericEnumOptions
+instance decodeEnum30U :: U.Decode Enum30 where unsafeDecode = U.genericUnsafeDecodeEnum U.defaultEnumOptions
+instance decodeEnum30F :: F.Decode Enum30 where decode = F.genericDecodeEnum F.defaultGenericEnumOptions
+
 foreign import measure :: forall a. String -> (Unit -> a) -> Effect Unit
 
 type Decoder a = Tuple String (Foreign -> Either String a)
@@ -233,16 +270,52 @@ genEnum10 n =
     9 -> E10_9
     _ -> E10_10
 
+genEnum30 :: Int -> Enum30
+genEnum30 n =
+  case n `mod` 10 of
+    1 -> E30_1
+    2 -> E30_2
+    3 -> E30_3
+    4 -> E30_4
+    5 -> E30_5
+    6 -> E30_6
+    7 -> E30_7
+    8 -> E30_8
+    9 -> E30_9
+    10 -> E30_10
+    11 -> E30_11
+    12 -> E30_12
+    13 -> E30_13
+    14 -> E30_14
+    15 -> E30_15
+    16 -> E30_16
+    17 -> E30_17
+    18 -> E30_18
+    19 -> E30_19
+    20 -> E30_20
+    21 -> E30_21
+    22 -> E30_22
+    23 -> E30_23
+    24 -> E30_24
+    25 -> E30_25
+    26 -> E30_26
+    27 -> E30_27
+    28 -> E30_28
+    29 -> E30_29
+    _ -> E30_30
+
 allDecoders = [ unscramble, foreignGeneric, simpleJson ]
 genericDecoders = [ unscramble, foreignGeneric ]
 
 main :: Effect Unit
 main = do
   test "Enum3" genEnum3 genericDecoders
-  test "Array(100) Enum3" (genArray 100 genEnum3) genericDecoders
-
   test "Enum10" genEnum10 genericDecoders
+  test "Enum30" genEnum30 genericDecoders
+
+  test "Array(100) Enum3" (genArray 100 genEnum3) genericDecoders
   test "Array(100) Enum10" (genArray 100 genEnum10) genericDecoders
+  test "Array(100) Enum30" (genArray 100 genEnum30) genericDecoders
 
   test "Array(100)" (genArray 100 genValue) allDecoders
   test "Array(1000)" (genArray 1000 genValue) allDecoders
