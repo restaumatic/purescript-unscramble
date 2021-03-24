@@ -309,6 +309,10 @@ genericDecoders = [ unscramble, foreignGeneric ]
 
 main :: Effect Unit
 main = do
+  test "Int" (\i -> i) allDecoders
+  test "Array(100) Int" (genArray 100 \i -> i) allDecoders
+  test "Array(1000) Int" (genArray 100 \i -> i) allDecoders
+
   test "Enum3" genEnum3 genericDecoders
   test "Enum10" genEnum10 genericDecoders
   test "Enum30" genEnum30 genericDecoders
