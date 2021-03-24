@@ -2,6 +2,7 @@ module Unscramble where
 
 import Prelude
 
+import Data.Array.NonEmpty as NE
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
 import Foreign.Object (Object)
@@ -50,6 +51,14 @@ instance decode_Boolean :: Decode Boolean where
 
 instance decode_Array :: Decode a => Decode (Array a) where
   unsafeDecode = decodeArray unsafeDecode
+
+instance decode_NonEmptyArray :: Decode a => Decode (NE.NonEmptyArray a) where
+  unsafeDecode f =
+    case NE.fromArray (decodeArray unsafeDecode f) of
+      Just nonEmpty ->
+        nonEmpty
+      Nothing -> 
+        decodingError "NonEmptyArray should not be empty"
 
 instance decode_Tuple :: (Decode a, Decode b) => Decode (Tuple a b) where
   unsafeDecode v =

@@ -3,6 +3,8 @@ module Test.Main where
 import Prelude
 
 import Effect
+import Data.Array.NonEmpty (NonEmptyArray)
+import Data.Array.NonEmpty as NE
 import Data.Tuple (Tuple(..))
 import Data.Maybe (Maybe(..), maybe)
 import Unscramble (decodeJSON, class Decode, class FromJSONKey, defaultFromJSONKeyValue)
@@ -101,6 +103,12 @@ main = launchAff_ $ runSpec [consoleReporter] do
       testDecode "[]" (Just [] :: Maybe (Array Int))
       testDecode "[1,2,3]" (Just [1,2,3] :: Maybe (Array Int))
       testDecode "1" (Nothing :: Maybe (Array Int))
+
+    describe "NonEmptyArray" do
+      testDecode "[1]" (Just (NE.singleton 1) :: Maybe (NonEmptyArray Int))
+      testDecode "[1,2,3]" (Just (NE.singleton 1 <> NE.singleton 2 <> NE.singleton 3) :: Maybe (NonEmptyArray Int))
+      testDecode "[]" (Nothing :: Maybe (NonEmptyArray Int))
+      testDecode "1" (Nothing :: Maybe (NonEmptyArray Int))
 
     describe "Set" do
       testDecode "[]" (Just mempty :: Maybe (Set.Set Int))
