@@ -326,6 +326,7 @@ main = do
   test "Array(10000)" (genArray 10000 genValue) allDecoders
 
   test "R3" genR3 allDecoders
+  test "Array(100) R3" (genArray 100 genR3) allDecoders
   test "R10" genR10 allDecoders
   test "Array(100) R10" (genArray 100 genR10) allDecoders
   test "R30" genR30 allDecoders
