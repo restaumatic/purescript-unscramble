@@ -33,6 +33,9 @@ class Decode a where
 instance decode_Foreign :: Decode Foreign where
   unsafeDecode x = x
 
+instance decode_Unit :: Decode Unit where
+  unsafeDecode _ = unit
+
 instance decode_String :: Decode String where
   unsafeDecode = decodeString
 

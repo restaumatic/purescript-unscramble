@@ -153,6 +153,10 @@ main = launchAff_ $ runSpec [consoleReporter] do
       testDecode """ 1 """ (Nothing :: Maybe Enum)
       testDecode """ {} """ (Nothing :: Maybe Enum)
 
+    describe "Unit" do
+      testDecode """ [] """ (Just unit)
+      testDecode """ "anything" """ (Just unit)
+
     describe "Generic" do
       describe "General sum types" do
         testDecode """ { "tag": "NoArgs" } """ (Just NoArgs)
