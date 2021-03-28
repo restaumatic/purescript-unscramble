@@ -5,9 +5,10 @@ import Prelude
 import Effect
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Array.NonEmpty as NE
+import Data.Either (either, Either(..), hush)
 import Data.Tuple (Tuple(..))
 import Data.Maybe (Maybe(..), maybe)
-import Unscramble (decodeJSON, class Decode, class FromJSONKey, defaultFromJSONKeyValue)
+import Unscramble (decodeJSON, decodeJSONEither, Result, class Decode, class FromJSONKey, defaultFromJSONKeyValue)
 import Unscramble.Generic
 import Unscramble.Enum (genericUnsafeDecodeEnum, defaultEnumOptions)
 import Effect.Aff (Aff, launchAff_)
@@ -74,9 +75,17 @@ main = launchAff_ $ runSpec [consoleReporter] do
   describe "Unscramble.Decode" do
     let
       testDecode :: forall a. Eq a => Show a => Decode a => String -> Maybe a -> Spec Unit
-      testDecode json result = do
-        it (json <> " -> " <> maybe "fail" show result) do
-          decodeJSON json `shouldEqual` result
+      testDecode json expected = do
+        it (json <> " -> " <> maybe "fail" show expected) do
+          let result = decodeJSONEither json
+
+          -- If failure is encountered when expecting success, show the error message for debugging
+          case expected, result of
+            Just expected', Left err ->
+              fail $ "Expected " <> show expected' <> ", got " <> show err
+            _, _ -> pure unit
+
+          hush result `shouldEqual` expected
 
     describe "invalid JSON" do
       testDecode "trash" (Nothing :: Maybe String)

@@ -20,11 +20,18 @@ import Data.Map as Map
 decode :: forall a. Decode a => Foreign -> Maybe a
 decode value = catchDecodingError (\_ -> unsafeDecode value)
 
-decodeEither :: forall a. Decode a => Foreign -> Either String a
+type DecodingError = String
+
+type Result = Either DecodingError
+
+decodeEither :: forall a. Decode a => Foreign -> Result a
 decodeEither value = catchDecodingErrorEither (\_ -> unsafeDecode value)
 
 decodeJSON :: forall a. Decode a => String -> Maybe a
 decodeJSON value = catchDecodingError (\_ -> unsafeDecode (unsafeParseJSON value))
+
+decodeJSONEither :: forall a. Decode a => String -> Result a
+decodeJSONEither value = catchDecodingErrorEither (\_ -> unsafeDecode (unsafeParseJSON value))
 
 foreign import decodingError :: forall a. String -> a
 
