@@ -17,6 +17,14 @@ import Partial.Unsafe (unsafePartial)
 genericUnsafeDecode :: forall a rep. Generic a rep => GenericDecode rep => Options -> Foreign -> a
 genericUnsafeDecode opts = to <<< genericDecoder opts
 
+-- | Decode a sum type generically, without unwrapping single constructors (i.e. always requiring tagged representation).
+-- 
+-- NB: the reason this is implemented as a separate function instead of an option is to
+-- minimize the dependencies of the genericDecodeSingleConstructor instance - the variant is
+-- chosen at the type level.
+genericUnsafeDecodeTagged :: forall a rep. Generic a rep => GenericDecodeSum rep => Options -> Foreign -> a
+genericUnsafeDecodeTagged opts = to <<< genericDecodeTaggedSumType opts
+
 -- No options supported yet
 type Options = {}
 
@@ -31,15 +39,18 @@ instance genericDecodeSingleConstructor :: GenericDecodeArgs args => GenericDeco
   genericDecoder opts = Constructor <<< genericDecodeArgs
 
 else instance genericDecodeSumType :: GenericDecodeSum a => GenericDecode a where
-  genericDecoder opts =
-    let constructors = Object.fromFoldable (genericSumDecoder opts :: Array (Tuple String (Foreign -> a)))
-    in \value ->
-      let tag = decodeString (unsafeCoerce value).tag in
-      case Object.lookup tag constructors of
-        Nothing ->
-          decodingError $ "Invalid sum type tag: " <> show tag
-        Just decoder ->
-          decoder value
+  genericDecoder = genericDecodeTaggedSumType
+  
+genericDecodeTaggedSumType :: forall a. GenericDecodeSum a => Options -> Foreign -> a
+genericDecodeTaggedSumType opts =
+  let constructors = Object.fromFoldable (genericSumDecoder opts :: Array (Tuple String (Foreign -> a)))
+  in \value ->
+    let tag = decodeString (unsafeCoerce value).tag in
+    case Object.lookup tag constructors of
+      Nothing ->
+        decodingError $ "Invalid sum type tag: " <> show tag
+      Just decoder ->
+        decoder value
 
 class GenericDecodeSum a where
   genericSumDecoder :: Options -> Array (Tuple String (Foreign -> a))

@@ -61,6 +61,16 @@ instance showSum :: Show Sum where
 instance decodeSum :: Decode Sum where
   unsafeDecode = genericUnsafeDecode defaultOptions
 
+-- | `ForceTagged a` is decoded using `genericUnsafeDecodeTagged`
+newtype ForceTagged a = ForceTagged a
+
+derive instance genericForceTagged :: Generic (ForceTagged a) _
+derive newtype instance eqForceTagged :: Eq a => Eq (ForceTagged a)
+instance showForceTagged :: Show a => Show (ForceTagged a) where
+  show = genericShow
+instance decodeForceTagged :: (Generic a rep, GenericDecodeSum rep) => Decode (ForceTagged a) where
+  unsafeDecode = ForceTagged <<< genericUnsafeDecodeTagged defaultOptions
+
 data SingleConManyArgs = SingleConManyArgs String Int
 
 derive instance genericSingleConManyArgs :: Generic SingleConManyArgs _
@@ -197,3 +207,20 @@ main = launchAff_ $ runSpec [consoleReporter] do
 
       describe "Single constructor, many arguments" do
         testDecode """ ["foo", 2] """ (Just (SingleConManyArgs "foo" 2))
+
+    describe "Generic - force tagged representation" do
+      describe "General sum types - should be the same as general case" do
+        testDecode """ { "tag": "NoArgs" } """ (Just (ForceTagged NoArgs))
+        testDecode """ { "tag": "SingleArg", "contents": 1 } """ (Just (ForceTagged (SingleArg 1)))
+        testDecode """ { "tag": "SingleRecordArg", "a": 1, "b": 2 } """ (Just (ForceTagged (SingleRecordArg { a: 1, b: 2 })))
+        testDecode """ {} """ (Nothing :: Maybe (ForceTagged Sum))
+
+      describe "Single constructor, single argument - should use tagged representation" do
+        testDecode """ { "tag": "SingleConstructor", "contents": 1 } """ (Just (ForceTagged (SingleConstructor 1)))
+        testDecode """ { "tag": "SingleConstructor", "a": 1 } """ (Just (ForceTagged (SingleConstructor { a: 1 })))
+        testDecode """ 1 """ (Nothing :: Maybe (ForceTagged (SingleConstructor Int)))
+        testDecode """ { "a": 1 } """ (Nothing :: Maybe (ForceTagged (SingleConstructor { a :: Int })))
+
+      describe "Single constructor, many arguments - should use tagged representation" do
+        testDecode """ { "tag": "SingleConManyArgs", "contents": ["foo", 2] } """ (Just (ForceTagged (SingleConManyArgs "foo" 2)))
+        testDecode """ ["foo", 2] """ (Nothing :: Maybe (ForceTagged SingleConManyArgs))
