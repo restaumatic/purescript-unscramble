@@ -122,7 +122,9 @@ instance decodeRecordCons :: (IsSymbol label, Decode a, DecodeRecord rest) => De
     (unsafeDecode :: Foreign -> a)
     (recordInfo (RLProxy :: RLProxy rest))
 
+foreign import isString :: Foreign -> Boolean
 foreign import decodeString :: Foreign -> String
+foreign import isNumber :: Foreign -> Boolean
 foreign import decodeNumber :: Foreign -> Number
 foreign import decodeInt :: Foreign -> Int
 foreign import decodeBoolean :: Foreign -> Boolean

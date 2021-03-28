@@ -33,16 +33,24 @@ exports.unsafeParseJSON = json => {
   }
 };
 
+const isString = x => typeof x === 'string';
+
+exports.isString = isString;
+
 exports.decodeString = x => {
-  if(typeof x === 'string') {
+  if(isString(x)) {
     return x;
   } else {
     decodingError("Expected String");
   }
 };
 
+const isNumber = x => typeof x === 'number';
+
+exports.isNumber = isNumber;
+
 exports.decodeNumber = x => {
-  if(typeof x === 'number') {
+  if(isNumber(x)) {
     return x;
   } else {
     decodingError("Expected Number");
@@ -65,45 +73,31 @@ exports.decodeBoolean = x => {
   }
 };
 
-exports.decodeArray = decodeItem => x => {
+const expectArray = x => {
   if(typeof x === 'object' && x instanceof Array) {
-    return x.map((item, index) => {
-      try {
-        return decodeItem(item);
-      } catch(e) {
-        if(e instanceof DecodingError) {
-          decodingError('at [' + index + ']: ' + e.message);
-        } else {
-          throw e;
-        }
-      }
-    });
+    return x;
   } else {
     decodingError("Expected Array");
   }
 };
 
-exports.decodeObject = decodeItem => x => {
-  if(typeof x === 'object' && !(x instanceof Array)) {
-    const result = {};
-    for(const key in x) {
-      try {
-        result[key] = decodeItem(x[key]);
-      } catch(e) {
-        if(e instanceof DecodingError) {
-          decodingError('at .' + key + ': ' + e.message);
-        } else {
-          throw e;
-        }
+exports.expectArray = expectArray;
+
+exports.decodeArray = decodeItem => x => {
+  return expectArray(x).map((item, index) => {
+    try {
+      return decodeItem(item);
+    } catch(e) {
+      if(e instanceof DecodingError) {
+        decodingError('at [' + index + ']: ' + e.message);
+      } else {
+        throw e;
       }
     }
-    return result;
-  } else {
-    decodingError("Expected Object");
-  }
+  });
 };
 
-exports.expectObject = x => {
+const expectObject = x => {
   if(typeof x === 'object' && !(x instanceof Array)) {
     return x;
   } else {
@@ -111,12 +105,23 @@ exports.expectObject = x => {
   }
 };
 
-exports.expectArray = x => {
-  if(typeof x === 'object' && x instanceof Array) {
-    return x;
-  } else {
-    decodingError("Expected Array");
+exports.expectObject = expectObject;
+
+exports.decodeObject = decodeItem => input => {
+  const x = expectObject(input);
+  const result = {};
+  for(const key in x) {
+    try {
+      result[key] = decodeItem(x[key]);
+    } catch(e) {
+      if(e instanceof DecodingError) {
+        decodingError('at .' + key + ': ' + e.message);
+      } else {
+        throw e;
+      }
+    }
   }
+  return result;
 };
 
 /// Record decoding
