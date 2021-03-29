@@ -12,6 +12,8 @@
 
     "console",
     "foreign-generic",
+    "argonaut",
+    "argonaut-codecs",
     "spec",
     "spec-mocha"
   ]

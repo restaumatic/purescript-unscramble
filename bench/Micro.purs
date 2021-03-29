@@ -4,6 +4,7 @@ import Prelude
 import Unscramble as U
 import Unscramble.Generic as U
 import Unscramble.Enum as U
+import Foreign as F
 import Foreign.Generic as F
 import Foreign.Generic.EnumEncoding as F
 import Effect
@@ -19,6 +20,8 @@ import Data.Foldable
 import Data.Array as Array
 import Simple.JSON as SJ
 import Data.Generic.Rep
+import Unsafe.Coerce (unsafeCoerce)
+import Data.Argonaut as A
 
 -- A value which should have negligible decoding overhead.
 newtype Value = Value Foreign
@@ -27,6 +30,8 @@ derive newtype instance encodeValue :: F.Encode Value
 derive newtype instance decodeValueU :: U.Decode Value
 derive newtype instance decodeValueF :: F.Decode Value
 derive newtype instance decodeValueSJ :: SJ.ReadForeign Value
+instance decodeValueA :: A.DecodeJson Value where
+  decodeJson = pure <<< Value <<< F.unsafeToForeign
 instance eqValue :: Eq Value where
   eq (Value x) (Value y) = F.encodeJSON x == F.encodeJSON y
 
@@ -47,6 +52,7 @@ derive newtype instance encodeR3 :: F.Encode R3
 derive newtype instance decodeR3U :: U.Decode R3
 derive newtype instance decodeR3F :: F.Decode R3
 derive newtype instance decodeR3SJ :: SJ.ReadForeign R3
+derive newtype instance decodeR3A :: A.DecodeJson R3
 derive instance eqR3 :: Eq R3
 
 newtype R10 = R10
@@ -67,6 +73,7 @@ derive newtype instance encodeR10 :: F.Encode R10
 derive newtype instance decodeR10U :: U.Decode R10
 derive newtype instance decodeR10F :: F.Decode R10
 derive newtype instance decodeR10SJ :: SJ.ReadForeign R10
+derive newtype instance decodeR10A :: A.DecodeJson R10
 derive instance eqR10 :: Eq R10
 
 newtype R30 = R30
@@ -107,6 +114,7 @@ derive newtype instance encodeR30 :: F.Encode R30
 derive newtype instance decodeR30U :: U.Decode R30
 derive newtype instance decodeR30F :: F.Decode R30
 derive newtype instance decodeR30SJ :: SJ.ReadForeign R30
+derive newtype instance decodeR30A :: A.DecodeJson R30
 derive instance eqR30 :: Eq R30
 
 data Enum3 = E3_1 | E3_2 | E3_3
@@ -232,6 +240,9 @@ derive instance genericSum30 :: Generic Sum30 _
 
 foreign import measure :: forall a. String -> (Unit -> a) -> Effect Unit
 
+foreignToJson :: Foreign -> A.Json
+foreignToJson = unsafeCoerce
+
 type Decoder a = Tuple String (Foreign -> Either String a)
 
 unscramble :: forall a. U.Decode a => Decoder a
@@ -242,6 +253,9 @@ foreignGeneric = Tuple "Foreign.Generic" (either (Left <<< renderForeignError <<
 
 simpleJson :: forall a. SJ.ReadForeign a => Decoder a
 simpleJson = Tuple "Simple.JSON" (either (Left <<< renderForeignError <<< NE.head) Right <<< SJ.read)
+
+argonaut :: forall a. A.DecodeJson a => Decoder a
+argonaut = Tuple "Argonaut" (either (Left <<< A.printJsonDecodeError) Right <<< A.decodeJson <<< foreignToJson)
 
 test :: forall a. F.Encode a => String -> (Int -> a) -> Array (Decoder a) -> Effect Unit
 test name generator decoders = do
@@ -444,7 +458,7 @@ genSum30 n =
 
 genGeneric g n = GenericWrapper (g n)
 
-allDecoders = [ unscramble, foreignGeneric, simpleJson ]
+allDecoders = [ unscramble, foreignGeneric, simpleJson, argonaut ]
 genericDecoders = [ unscramble, foreignGeneric ]
 
 main :: Effect Unit
