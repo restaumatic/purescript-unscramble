@@ -13,7 +13,7 @@
     "console",
     "foreign-generic",
     "argonaut",
-    "argonaut-codecs",
+    "argonaut-generic",
     "spec",
     "spec-mocha"
   ]

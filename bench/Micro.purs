@@ -22,6 +22,9 @@ import Simple.JSON as SJ
 import Data.Generic.Rep
 import Unsafe.Coerce (unsafeCoerce)
 import Data.Argonaut as A
+import Data.Argonaut.Decode.Generic.Rep as A
+import Data.Argonaut.Types.Generic.Rep as A
+import Effect.Class.Console as Console
 
 -- A value which should have negligible decoding overhead.
 newtype Value = Value Foreign
@@ -123,6 +126,7 @@ derive instance genericEnum3 :: Generic Enum3 _
 instance encodeEnum3 :: F.Encode Enum3 where encode = F.genericEncodeEnum F.defaultGenericEnumOptions
 instance decodeEnum3U :: U.Decode Enum3 where unsafeDecode = U.genericUnsafeDecodeEnum U.defaultEnumOptions
 instance decodeEnum3F :: F.Decode Enum3 where decode = F.genericDecodeEnum F.defaultGenericEnumOptions
+instance decodeEnum3A :: A.DecodeJson Enum3 where decodeJson = A.decodeLiteralSum
 
 data Enum10
   = E10_1
@@ -140,6 +144,7 @@ derive instance genericEnum10 :: Generic Enum10 _
 instance encodeEnum10 :: F.Encode Enum10 where encode = F.genericEncodeEnum F.defaultGenericEnumOptions
 instance decodeEnum10U :: U.Decode Enum10 where unsafeDecode = U.genericUnsafeDecodeEnum U.defaultEnumOptions
 instance decodeEnum10F :: F.Decode Enum10 where decode = F.genericDecodeEnum F.defaultGenericEnumOptions
+instance decodeEnum10A :: A.DecodeJson Enum10 where decodeJson = A.decodeLiteralSum
 
 data Enum30
   = E30_1
@@ -177,6 +182,7 @@ derive instance genericEnum30 :: Generic Enum30 _
 instance encodeEnum30 :: F.Encode Enum30 where encode = F.genericEncodeEnum F.defaultGenericEnumOptions
 instance decodeEnum30U :: U.Decode Enum30 where unsafeDecode = U.genericUnsafeDecodeEnum U.defaultEnumOptions
 instance decodeEnum30F :: F.Decode Enum30 where decode = F.genericDecodeEnum F.defaultGenericEnumOptions
+instance decodeEnum30A :: A.DecodeJson Enum30 where decodeJson = A.decodeLiteralSum
 
 type SumArg = { value :: Value }
 
@@ -272,6 +278,8 @@ test name generator decoders = do
 
   for_ decoders \(Tuple decoderName decoder) ->
     measure (name <> " " <> decoderName) (\_ -> decoder input)
+
+  Console.log "---"
 
 genR3 :: Int -> R3
 genR3 _ = R3 { f1: def, f2: def, f3: def }
@@ -399,6 +407,15 @@ instance decodeGenericWrapperU :: (Generic a rep, U.GenericDecode rep) => U.Deco
 instance decodeGenericWrapperF :: (Generic a rep, F.GenericDecode rep) => F.Decode (GenericWrapper a) where
   decode = map GenericWrapper <<< F.genericDecode foreignGenericOpts
 
+instance decodeGenericWrapperA :: (Generic a rep, A.DecodeRep rep) => A.DecodeJson (GenericWrapper a) where
+  decodeJson = map GenericWrapper <<< A.genericDecodeJsonWith defaultArgonautEncoding
+
+defaultArgonautEncoding :: A.Encoding
+defaultArgonautEncoding =
+  { tagKey: "tag"
+  , valuesKey: "contents"
+  , unwrapSingleArguments: true
+  }
 
 genSum3 :: Int -> Sum3
 genSum3 n =
@@ -458,8 +475,9 @@ genSum30 n =
 
 genGeneric g n = GenericWrapper (g n)
 
-allDecoders = [ unscramble, foreignGeneric, simpleJson, argonaut ]
-genericDecoders = [ unscramble, foreignGeneric ]
+allDecoders = [ unscramble, argonaut, foreignGeneric, simpleJson ]
+genericDecoders = [ unscramble, argonaut, foreignGeneric ]
+genericSingleConstructorDecoders = [ unscramble, foreignGeneric ]
 
 main :: Effect Unit
 main = do
@@ -473,13 +491,13 @@ main = do
   test "R10" genR10 allDecoders
   test "R30" genR30 allDecoders
 
-  test "Generic R3"  (genGeneric genR3 ) genericDecoders
-  test "Generic R10" (genGeneric genR10) genericDecoders
-  test "Generic R30" (genGeneric genR30) genericDecoders
+  test "Generic R3"  (genGeneric genR3 ) genericSingleConstructorDecoders
+  test "Generic R10" (genGeneric genR10) genericSingleConstructorDecoders
+  test "Generic R30" (genGeneric genR30) genericSingleConstructorDecoders
 
   test "Int" (\i -> i) allDecoders
   test "Array(100) Int" (genArray 100 \i -> i) allDecoders
-  test "Array(1000) Int" (genArray 100 \i -> i) allDecoders
+  test "Array(1000) Int" (genArray 1000 \i -> i) allDecoders
 
   test "Enum3" genEnum3 genericDecoders
   test "Enum10" genEnum10 genericDecoders
