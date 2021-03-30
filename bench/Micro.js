@@ -1,4 +1,6 @@
-const { performance } = require('perf_hooks');
+if(typeof performance === 'undefined') {
+  performance = require('perf_hooks').performance;
+}
 
 exports.measure = name => action => () => {
   // warmup
@@ -25,3 +27,14 @@ function rpad(n, s) {
   }
   return s;
 }
+
+exports.getFilters = () => {
+  if(typeof location !== 'undefined') {
+    // Browser
+    const hash = location.hash.substring(1);
+    return hash ? [decodeURIComponent(hash)] : ['NONE'];
+  } else {
+    // Node.js (assumed)
+    return process.argv.slice(2);
+  }
+};

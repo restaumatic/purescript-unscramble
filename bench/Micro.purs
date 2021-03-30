@@ -25,7 +25,6 @@ import Data.Argonaut as A
 import Data.Argonaut.Decode.Generic.Rep as A
 import Data.Argonaut.Types.Generic.Rep as A
 import Effect.Class.Console as Console
-import Node.Process as Process
 import Data.String as String
 
 -- A value which should have negligible decoding overhead.
@@ -265,11 +264,13 @@ simpleJson = Tuple "Simple.JSON" (either (Left <<< renderForeignError <<< NE.hea
 argonaut :: forall a. A.DecodeJson a => Decoder a
 argonaut = Tuple "Argonaut" (either (Left <<< A.printJsonDecodeError) Right <<< A.decodeJson <<< foreignToJson)
 
+foreign import getFilters :: Effect (Array String)
+
 test :: forall a. F.Encode a => String -> (Int -> a) -> Array (Decoder a) -> Effect Unit
 test name generator decoders' = do
   let input = F.encode (generator 0)
 
-  filters <- Process.argv
+  filters <- getFilters
   let decoders = Array.filter (\(Tuple decoderName _) -> matchesFilters filters (name <> " " <> decoderName)) decoders'
 
   for_ decoders \(Tuple decoderName decoder) ->
@@ -491,6 +492,9 @@ genericSingleConstructorDecoders = [ unscramble, foreignGeneric ]
 
 main :: Effect Unit
 main = do
+  filters <- getFilters
+  Console.log $ "Filters: " <> show filters
+
   test "Generic Sum3"  (genGeneric genSum3 ) genericDecoders
   test "Generic Sum10" (genGeneric genSum10) genericDecoders
   test "Generic Sum30" (genGeneric genSum30) genericDecoders
