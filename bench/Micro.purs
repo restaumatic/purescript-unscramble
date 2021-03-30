@@ -25,6 +25,8 @@ import Data.Argonaut as A
 import Data.Argonaut.Decode.Generic.Rep as A
 import Data.Argonaut.Types.Generic.Rep as A
 import Effect.Class.Console as Console
+import Node.Process as Process
+import Data.String as String
 
 -- A value which should have negligible decoding overhead.
 newtype Value = Value Foreign
@@ -264,8 +266,11 @@ argonaut :: forall a. A.DecodeJson a => Decoder a
 argonaut = Tuple "Argonaut" (either (Left <<< A.printJsonDecodeError) Right <<< A.decodeJson <<< foreignToJson)
 
 test :: forall a. F.Encode a => String -> (Int -> a) -> Array (Decoder a) -> Effect Unit
-test name generator decoders = do
+test name generator decoders' = do
   let input = F.encode (generator 0)
+
+  filters <- Process.argv
+  let decoders = Array.filter (\(Tuple decoderName _) -> matchesFilters filters (name <> " " <> decoderName)) decoders'
 
   for_ decoders \(Tuple decoderName decoder) ->
     case decoder input of
@@ -279,7 +284,12 @@ test name generator decoders = do
   for_ decoders \(Tuple decoderName decoder) ->
     measure (name <> " " <> decoderName) (\_ -> decoder input)
 
-  Console.log "---"
+  unless (Array.null decoders) do
+    Console.log "---"
+
+  where
+    matchesFilters [] _ = true
+    matchesFilters filters name = any (\filter -> String.contains (String.Pattern filter) name) filters
 
 genR3 :: Int -> R3
 genR3 _ = R3 { f1: def, f2: def, f3: def }

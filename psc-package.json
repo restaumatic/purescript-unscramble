@@ -15,6 +15,7 @@
     "argonaut",
     "argonaut-generic",
     "spec",
+    "node-process",
     "spec-mocha"
   ]
 }
