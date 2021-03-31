@@ -129,13 +129,18 @@ exports.decodeObject = decodeItem => input => {
 exports.recordInfoCons = label => decodeItem => next => ({ label, decodeItem, next });
 exports.recordInfoNil = null;
 
-exports.decodeRecord = info => x => {
-  if(typeof x === 'object' && !(x instanceof Array)) {
+exports.decodeRecord = function(info) {
+  return function decodeRecord$1(value) {
+    const x = expectObject(value);
+
     const result = {};
     let entry = info;
     while(entry) {
+      const label = entry.label;
+      const original = x[label];
+      let decoded;
       try {
-        result[entry.label] = entry.decodeItem(x[entry.label]);
+        decoded = entry.decodeItem(original);
       } catch(e) {
         if(e instanceof DecodingError) {
           decodingError('at .' + entry.label + ': ' + e.message);
@@ -143,10 +148,9 @@ exports.decodeRecord = info => x => {
           throw e;
         }
       }
+      result[label] = decoded;
       entry = entry.next;
     }
     return result;
-  } else {
-    decodingError("Expected Object");
-  }
+  };
 };
