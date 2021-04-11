@@ -180,6 +180,9 @@ main = launchAff_ $ runSpec [consoleReporter] do
       testDecode """ 1 """ (Nothing :: Maybe Enum)
       testDecode """ {} """ (Nothing :: Maybe Enum)
 
+      describe "doesn't crash on undefined" do
+        testDecode """ {} """ (Nothing :: Maybe { a :: Enum })
+
     describe "Unit" do
       testDecode """ [] """ (Just unit)
       testDecode """ "anything" """ (Just unit)
@@ -200,6 +203,9 @@ main = launchAff_ $ runSpec [consoleReporter] do
         testDecode """ { "tag": "ManyArgs", "contents": [{ "a": 1, "b": 2 }, 3, 4] } """ (Nothing :: Maybe Sum)
         testDecode """ { "tag": "ManyArgs", "contents": [{ "a": 1, "b": 2 }] } """ (Nothing :: Maybe Sum)
         testDecode """ { "tag": "ManyArgs", "contents": [{ "a": 1, "b": "junk" }, 3] } """ (Nothing :: Maybe Sum)
+
+        describe "doesn't crash on undefined" do
+          testDecode """ {} """ (Nothing :: Maybe { a :: Sum })
 
       describe "Single constructor, single argument" do
         testDecode """ 1 """ (Just (SingleConstructor 1))

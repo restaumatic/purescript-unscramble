@@ -45,7 +45,7 @@ genericDecodeTaggedSumType :: forall a. GenericDecodeSum a => Options -> Foreign
 genericDecodeTaggedSumType opts =
   let constructors = Object.fromFoldable (genericSumDecoder opts :: Array (Tuple String (Foreign -> a)))
   in \value ->
-    let tag = decodeString (unsafeCoerce value).tag in
+    let tag = decodeString (unsafeCoerce (expectObject value)).tag in
     case Object.lookup tag constructors of
       Nothing ->
         decodingError $ "Invalid sum type tag: " <> show tag
