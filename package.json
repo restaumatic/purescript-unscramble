@@ -2,15 +2,13 @@
   "private": true,
   "scripts": {
     "postinstall": "scripts/install-purescript v0.13.8 && psc-package install",
-    "test": "pulp --psc-package test",
-    "test-w": "pulp --psc-package -w test",
-    "bench": "pulp --psc-package run -I bench --main Bench.Main",
-    "bench-micro": "pulp --psc-package run -I bench --main Bench.Micro --",
-    "build-browser-bench-micro": "pulp --psc-package browserify --to output/Bench.Micro/bundle.js -I bench --main Bench.Micro"
+    "test": "spago test",
+    "test-w": "spago test --watch",
+    "bench": "spago run --main Bench.Main",
+    "bench-micro": "spago run --main Bench.Micro --",
+    "build-browser-bench-micro": "spago bundle-app --to output/Bench.Micro/bundle.js --main Bench.Micro"
   },
   "devDependencies": {
-    "psc-package": "^3.0.1",
-    "pulp": "15.0.0",
     "karma": "^5.2.3",
     "karma-chrome-launcher": "^3.1.0",
     "karma-mocha": "^2.0.1",
