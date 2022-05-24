@@ -1,5 +1,6 @@
 let upstream =
-      https://github.com/purescript/package-sets/releases/download/psc-0.15.0-20220523/packages.dhall sha256:0b0d4db1f2f0acd3b37fa53220644ac6f64cf9b5d0226fd097c0593df563d5be
+      https://github.com/purescript/package-sets/releases/download/psc-0.15.0-20220523/packages.dhall
+        sha256:985f90fa68fd8b43b14c777d6ec2c161c4dd9009563b6f51685a54e4a26bf8ff
 
 in  upstream
   with spec-mocha =
@@ -27,7 +28,8 @@ in  upstream
       , "exceptions"
       , "record"
       ]
-    , repo = "https://github.com/working-group-purescript-es/purescript-foreign-generic.git"
+    , repo =
+        "https://github.com/working-group-purescript-es/purescript-foreign-generic.git"
     , version = "e7fa22dc9fc2351485f2e915fa7d418ca1965c6d"
     }
   with simple-json =
