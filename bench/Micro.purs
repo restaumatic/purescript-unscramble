@@ -22,8 +22,8 @@ import Simple.JSON as SJ
 import Data.Generic.Rep
 import Unsafe.Coerce (unsafeCoerce)
 import Data.Argonaut as A
-import Data.Argonaut.Decode.Generic.Rep as A
-import Data.Argonaut.Types.Generic.Rep as A
+import Data.Argonaut.Decode.Generic as A
+import Data.Argonaut.Types.Generic as A
 import Effect.Class.Console as Console
 import Data.String as String
 

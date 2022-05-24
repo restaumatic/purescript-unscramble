@@ -20,7 +20,7 @@ import Foreign.Object as Object
 import Data.Set as Set
 import Data.Map as Map
 import Data.Generic.Rep
-import Data.Generic.Rep.Show
+import Data.Show.Generic
 
 type TestRecord = { a :: Int, b :: Int }
 

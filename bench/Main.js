@@ -1,6 +1,6 @@
-const { performance } = require('perf_hooks');
+import {performance} from 'perf_hooks';
 
-exports.generateData = () => {
+export function generateData() {
   const data = range(100).map(productId => ({
     name: 'product' + productId,
     description: 'desc' + productId,
@@ -21,7 +21,7 @@ exports.generateData = () => {
     })),
   }));
   return data;
-};
+}
 
 function range(n) {
   return [...Array(n).keys()];
@@ -31,16 +31,18 @@ function randomPrice() {
   return Math.floor(Math.random() * 20);
 }
 
-exports.measure = name => action => () => {
-  const N = 100;
-//  console.log(JSON.stringify(action(), null, 2));
-  for(let i = 0; i < N; i++) {
-    action();
-  }
-  const start = performance.now();
-  for(let i = 0; i < N; i++) {
-    action();
-  }
-  const duration = (performance.now() - start) / N;
-  console.log(name + ': ' + duration.toFixed(3) + 'ms');
-};
+export function measure(name) {
+  return action => () => {
+    const N = 100;
+  //  console.log(JSON.stringify(action(), null, 2));
+    for(let i = 0; i < N; i++) {
+      action();
+    }
+    const start = performance.now();
+    for(let i = 0; i < N; i++) {
+      action();
+    }
+    const duration = (performance.now() - start) / N;
+    console.log(name + ': ' + duration.toFixed(3) + 'ms');
+  };
+}

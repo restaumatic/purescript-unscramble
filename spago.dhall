@@ -11,23 +11,31 @@ When creating a new Spago project, you can use
 to generate this file without the comments in this block.
 -}
 { name = "purescript-unscramble"
-, dependencies = [
-
-    "prelude",
-    "foreign",
-    "generics-rep",
-    "foreign-object",
-    "ordered-collections",
-    "simple-json",
-
-    "console",
-    "foreign-generic",
-    "argonaut",
-    "argonaut-generic",
-    "spec",
-    "node-process",
-    "spec-mocha"
-    ]
+, dependencies =
+  [ "aff"
+  , "argonaut"
+  , "argonaut-generic"
+  , "arrays"
+  , "console"
+  , "effect"
+  , "either"
+  , "exceptions"
+  , "foldable-traversable"
+  , "foreign"
+  , "foreign-generic"
+  , "foreign-object"
+  , "lists"
+  , "maybe"
+  , "ordered-collections"
+  , "partial"
+  , "prelude"
+  , "simple-json"
+  , "spec"
+  , "strings"
+  , "transformers"
+  , "tuples"
+  , "unsafe-coerce"
+  ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs", "bench/**/*.purs" ]
 }

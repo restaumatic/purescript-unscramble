@@ -6,7 +6,8 @@ import Unscramble
 import Foreign
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
-import Data.Symbol (class IsSymbol, reflectSymbol, SProxy(..))
+import Data.Symbol (class IsSymbol, reflectSymbol)
+import Type.Proxy (Proxy(..))
 import Data.Generic.Rep (class Generic, Argument, Constructor(..), NoArguments(..), Product, Sum(..), from, to)
 import Foreign.Object as Object
 
@@ -32,7 +33,7 @@ class EnumConstructors a where
 instance enumConstructorsConstructor :: IsSymbol name => EnumConstructors (Constructor name NoArguments) where
   enumConstructors opts =
     [ Tuple
-        (opts.constructorTagTransform $ reflectSymbol (SProxy :: SProxy name))
+        (opts.constructorTagTransform $ reflectSymbol (Proxy :: Proxy name))
         (Constructor NoArguments)
     ]
 

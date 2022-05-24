@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "postinstall": "scripts/install-purescript v0.13.8 && spago install",
+    "postinstall": "spago install",
     "test": "spago test",
     "test-w": "spago test --watch",
     "bench": "spago run --main Bench.Main",
@@ -13,6 +13,10 @@
     "karma-chrome-launcher": "^3.1.0",
     "karma-mocha": "^2.0.1",
     "karma-spec-reporter": "^0.0.32",
-    "mocha": "^8.2.0"
+    "mocha": "^8.2.0",
+    "spago": "^0.20.9"
+  },
+  "dependencies": {
+    "purescript": "^0.15.2"
   }
 }

@@ -6,14 +6,13 @@ import Data.Array.NonEmpty as NE
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
 import Foreign.Object (Object)
-import Data.Symbol (class IsSymbol, reflectSymbol, SProxy(..))
-import Type.Data.RowList (RLProxy(..))
+import Data.Symbol (class IsSymbol, reflectSymbol)
 import Prim.RowList as RL
 import Foreign
 import Data.FoldableWithIndex
 import Data.Foldable
 import Data.Tuple (Tuple(..))
-
+import Type.Proxy (Proxy(..))
 import Data.Set as Set
 import Data.Map as Map
 
@@ -77,7 +76,7 @@ instance decode_Object :: Decode a => Decode (Object a) where
   unsafeDecode = decodeObject unsafeDecode
 
 instance decode_Record :: (RL.RowToList r rl, DecodeRecord rl) => Decode (Record r) where
-  unsafeDecode = decodeRecord (recordInfo (RLProxy :: RLProxy rl))
+  unsafeDecode = decodeRecord (recordInfo (Proxy :: Proxy rl))
 
 instance decode_Maybe :: Decode a => Decode (Maybe a) where
   unsafeDecode value =
@@ -118,16 +117,16 @@ foreign import recordInfoCons :: forall a. String -> (Foreign -> a) -> RecordInf
 foreign import decodeRecord :: forall r. RecordInfo -> Foreign -> Record r
 
 class DecodeRecord rl where
-  recordInfo :: RLProxy rl -> RecordInfo
+  recordInfo :: Proxy rl -> RecordInfo
 
 instance decodeRecordNil :: DecodeRecord RL.Nil where
   recordInfo _ = recordInfoNil
 
 instance decodeRecordCons :: (IsSymbol label, Decode a, DecodeRecord rest) => DecodeRecord (RL.Cons label a rest) where
   recordInfo _ = recordInfoCons
-    (reflectSymbol (SProxy :: SProxy label))
+    (reflectSymbol (Proxy :: Proxy label))
     (unsafeDecode :: Foreign -> a)
-    (recordInfo (RLProxy :: RLProxy rest))
+    (recordInfo (Proxy :: Proxy rest))
 
 foreign import isString :: Foreign -> Boolean
 foreign import decodeString :: Foreign -> String

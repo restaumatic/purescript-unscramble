@@ -6,22 +6,24 @@ function decodingError(msg) {
   throw new DecodingError(msg);
 }
 
-exports.decodingError = decodingError;
+export {decodingError};
 
 // catchDecodingErrorImpl :: forall a r. (String -> r) -> (a -> r) -> (Partial => a) -> r
-exports.catchDecodingErrorImpl = onError => onSuccess => fn => {
-  try {
-    return onSuccess(fn());
-  } catch(e) {
-    if(e instanceof DecodingError) {
-      return onError(e.message);
-    } else {
-      throw e;
+export function catchDecodingErrorImpl(onError) {
+  return onSuccess => fn => {
+    try {
+      return onSuccess(fn());
+    } catch(e) {
+      if(e instanceof DecodingError) {
+        return onError(e.message);
+      } else {
+        throw e;
+      }
     }
-  }
-};
+  };
+}
 
-exports.unsafeParseJSON = json => {
+export function unsafeParseJSON(json) {
   try {
     return JSON.parse(json);
   } catch(e) {
@@ -31,47 +33,47 @@ exports.unsafeParseJSON = json => {
       throw e;
     }
   }
-};
+}
 
 const isString = x => typeof x === 'string';
 
-exports.isString = isString;
+export {isString};
 
-exports.decodeString = x => {
+export function decodeString(x) {
   if(isString(x)) {
     return x;
   } else {
     decodingError("Expected String");
   }
-};
+}
 
 const isNumber = x => typeof x === 'number';
 
-exports.isNumber = isNumber;
+export {isNumber};
 
-exports.decodeNumber = x => {
+export function decodeNumber(x) {
   if(isNumber(x)) {
     return x;
   } else {
     decodingError("Expected Number");
   }
-};
+}
 
-exports.decodeInt = x => {
+export function decodeInt(x) {
   if(typeof x === 'number' && Math.floor(x) === x) {
     return x;
   } else {
     decodingError("Expected Int");
   }
-};
+}
 
-exports.decodeBoolean = x => {
+export function decodeBoolean(x) {
   if(typeof x === 'boolean') {
     return x;
   } else {
     decodingError("Expected Boolean");
   }
-};
+}
 
 const expectArray = x => {
   if(typeof x === 'object' && x instanceof Array) {
@@ -81,21 +83,23 @@ const expectArray = x => {
   }
 };
 
-exports.expectArray = expectArray;
+export {expectArray};
 
-exports.decodeArray = decodeItem => x => {
-  return expectArray(x).map((item, index) => {
-    try {
-      return decodeItem(item);
-    } catch(e) {
-      if(e instanceof DecodingError) {
-        decodingError('at [' + index + ']: ' + e.message);
-      } else {
-        throw e;
+export function decodeArray(decodeItem) {
+  return x => {
+    return expectArray(x).map((item, index) => {
+      try {
+        return decodeItem(item);
+      } catch(e) {
+        if(e instanceof DecodingError) {
+          decodingError('at [' + index + ']: ' + e.message);
+        } else {
+          throw e;
+        }
       }
-    }
-  });
-};
+    });
+  };
+}
 
 const expectObject = x => {
   if(typeof x === 'object' && !(x instanceof Array)) {
@@ -105,31 +109,36 @@ const expectObject = x => {
   }
 };
 
-exports.expectObject = expectObject;
+export {expectObject};
 
-exports.decodeObject = decodeItem => input => {
-  const x = expectObject(input);
-  const result = {};
-  for(const key in x) {
-    try {
-      result[key] = decodeItem(x[key]);
-    } catch(e) {
-      if(e instanceof DecodingError) {
-        decodingError('at .' + key + ': ' + e.message);
-      } else {
-        throw e;
+export function decodeObject(decodeItem) {
+  return input => {
+    const x = expectObject(input);
+    const result = {};
+    for(const key in x) {
+      try {
+        result[key] = decodeItem(x[key]);
+      } catch(e) {
+        if(e instanceof DecodingError) {
+          decodingError('at .' + key + ': ' + e.message);
+        } else {
+          throw e;
+        }
       }
     }
-  }
-  return result;
-};
+    return result;
+  };
+}
 
 /// Record decoding
 
-exports.recordInfoCons = label => decodeItem => next => ({ label, decodeItem, next });
-exports.recordInfoNil = null;
+export function recordInfoCons(label) {
+  return decodeItem => next => ({ label, decodeItem, next });
+}
 
-exports.decodeRecord = function(info) {
+export var recordInfoNil = null;
+
+export function decodeRecord(info) {
   return function decodeRecord$1(value) {
     const x = expectObject(value);
 
@@ -153,4 +162,4 @@ exports.decodeRecord = function(info) {
     }
     return result;
   };
-};
+}

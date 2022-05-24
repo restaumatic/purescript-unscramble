@@ -7,7 +7,8 @@ import Foreign
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
-import Data.Symbol (class IsSymbol, reflectSymbol, SProxy(..))
+import Data.Symbol (class IsSymbol, reflectSymbol)
+import Type.Proxy (Proxy(..))
 import Data.Generic.Rep (class Generic, Argument(..), Constructor(..), NoArguments(..), Product(..), Sum(..), from, to)
 import Foreign.Object as Object
 import Unsafe.Coerce (unsafeCoerce)
@@ -62,7 +63,7 @@ instance genericDecodeSingleRecordArgumentConstructor ::
   ) => GenericDecodeSum (Constructor name (Argument (Record r))) where
   genericSumDecoder opts =
     [ Tuple
-        (reflectSymbol (SProxy :: SProxy name))
+        (reflectSymbol (Proxy :: Proxy name))
         (Constructor <<< Argument <<< unsafeDecode)
     ]
 else instance genericDecodeConstructor ::
@@ -71,7 +72,7 @@ else instance genericDecodeConstructor ::
   ) => GenericDecodeSum (Constructor name args) where
   genericSumDecoder opts =
     [ Tuple
-        (reflectSymbol (SProxy :: SProxy name))
+        (reflectSymbol (Proxy :: Proxy name))
         (Constructor <<< genericDecodeArgs <<< _.contents <<< unsafeCoerce)
     ]
 

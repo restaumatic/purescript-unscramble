@@ -1,115 +1,47 @@
-{-
-Welcome to your new Dhall package-set!
-
-Below are instructions for how to edit this file for most use
-cases, so that you don't need to know Dhall to use it.
-
-## Use Cases
-
-Most will want to do one or both of these options:
-1. Override/Patch a package's dependency
-2. Add a package not already in the default package set
-
-This file will continue to work whether you use one or both options.
-Instructions for each option are explained below.
-
-### Overriding/Patching a package
-
-Purpose:
-- Change a package's dependency to a newer/older release than the
-    default package set's release
-- Use your own modified version of some dependency that may
-    include new API, changed API, removed API by
-    using your custom git repo of the library rather than
-    the package set's repo
-
-Syntax:
-where `entityName` is one of the following:
-- dependencies
-- repo
-- version
--------------------------------
-let upstream = --
-in  upstream
-  with packageName.entityName = "new value"
--------------------------------
-
-Example:
--------------------------------
-let upstream = --
-in  upstream
-  with halogen.version = "master"
-  with halogen.repo = "https://example.com/path/to/git/repo.git"
-
-  with halogen-vdom.version = "v4.0.0"
-  with halogen-vdom.dependencies = [ "extra-dependency" ] # halogen-vdom.dependencies
--------------------------------
-
-### Additions
-
-Purpose:
-- Add packages that aren't already included in the default package set
-
-Syntax:
-where `<version>` is:
-- a tag (i.e. "v4.0.0")
-- a branch (i.e. "master")
-- commit hash (i.e. "701f3e44aafb1a6459281714858fadf2c4c2a977")
--------------------------------
-let upstream = --
-in  upstream
-  with new-package-name =
-    { dependencies =
-       [ "dependency1"
-       , "dependency2"
-       ]
-    , repo =
-       "https://example.com/path/to/git/repo.git"
-    , version =
-        "<version>"
-    }
--------------------------------
-
-Example:
--------------------------------
-let upstream = --
-in  upstream
-  with benchotron =
-      { dependencies =
-          [ "arrays"
-          , "exists"
-          , "profunctor"
-          , "strings"
-          , "quickcheck"
-          , "lcg"
-          , "transformers"
-          , "foldable-traversable"
-          , "exceptions"
-          , "node-fs"
-          , "node-buffer"
-          , "node-readline"
-          , "datetime"
-          , "now"
-          ]
-      , repo =
-          "https://github.com/hdgarrood/purescript-benchotron.git"
-      , version =
-          "v7.0.0"
-      }
--------------------------------
--}
 let upstream =
-      https://github.com/purescript/package-sets/releases/download/psc-0.13.8-20210226/packages.dhall
-        sha256:7e973070e323137f27e12af93bc2c2f600d53ce4ae73bb51f34eb7d7ce0a43ea
-  with   spec-mocha = {
-  dependencies = [
-      "console",
-      "exceptions",
-      "foldable-traversable",
-      "spec"
-    ],
-    repo = "https://github.com/owickstrom/purescript-spec-mocha.git",
-    version = "v4.0.0"
-  }
+      https://github.com/purescript/package-sets/releases/download/psc-0.15.0-20220523/packages.dhall sha256:0b0d4db1f2f0acd3b37fa53220644ac6f64cf9b5d0226fd097c0593df563d5be
 
 in  upstream
+  with spec-mocha =
+    { dependencies =
+      [ "aff"
+      , "console"
+      , "datetime"
+      , "effect"
+      , "either"
+      , "foldable-traversable"
+      , "maybe"
+      , "newtype"
+      , "prelude"
+      , "spec"
+      ]
+    , repo = "https://github.com/restaumatic/purescript-spec-mocha.git"
+    , version = "v4.0.0-restaumatic2"
+    }
+  with foreign-generic =
+    { dependencies =
+      [ "effect"
+      , "foreign"
+      , "foreign-object"
+      , "ordered-collections"
+      , "exceptions"
+      , "record"
+      ]
+    , repo = "https://github.com/working-group-purescript-es/purescript-foreign-generic.git"
+    , version = "e7fa22dc9fc2351485f2e915fa7d418ca1965c6d"
+    }
+  with simple-json =
+    { dependencies =
+      [ "prelude"
+      , "typelevel-prelude"
+      , "record"
+      , "variant"
+      , "nullable"
+      , "foreign-object"
+      , "foreign"
+      , "exceptions"
+      , "arrays"
+      ]
+    , repo = "https://github.com/justinwoo/purescript-simple-json.git"
+    , version = "b85e112131240ff95b5c26e9abb8e2fa6db3c656"
+    }
