@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "postinstall": "scripts/install-purescript v0.13.8 && psc-package install",
+    "postinstall": "scripts/install-purescript v0.13.8 && spago install",
     "test": "spago test",
     "test-w": "spago test --watch",
     "bench": "spago run --main Bench.Main",
