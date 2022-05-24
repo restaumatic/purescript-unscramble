@@ -1,4 +1,4 @@
-# Unscramble [![CircleCI](https://circleci.com/gh/restaumatic/purescript-unscramble/tree/master.svg?style=svg)](https://circleci.com/gh/restaumatic/purescript-unscramble/tree/master)
+# Unscramble [![CI](https://github.com/restaumatic/purescript-unscramble/actions/workflows/ci.yml/badge.svg)](https://github.com/restaumatic/purescript-unscramble/actions/workflows/ci.yml)
 
 **Unscramble** ("decode while visibly struggling") - a hopefully faster JSON decoding library for PureScript.
 
