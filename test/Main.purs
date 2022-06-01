@@ -67,7 +67,7 @@ derive instance Generic (PolymorphicSingleConstructorArgument a) _
 derive instance Eq a => Eq (PolymorphicSingleConstructorArgument a)
 instance Show a => Show (PolymorphicSingleConstructorArgument a) where
   show = genericShow
-instance (Decode a, DecodeSingleConstructorArgument a) => Decode (PolymorphicSingleConstructorArgument a) where
+instance DecodeSingleConstructorArgument a => Decode (PolymorphicSingleConstructorArgument a) where
   unsafeDecode = genericUnsafeDecode defaultOptions
 
 -- | `ForceTagged a` is decoded using `genericUnsafeDecodeTagged`
