@@ -61,6 +61,15 @@ instance Show Sum where
 instance Decode Sum where
   unsafeDecode = genericUnsafeDecode defaultOptions
 
+data PolymorphicSingleConstructorArgument a = C1 | C2 a
+
+derive instance Generic (PolymorphicSingleConstructorArgument a) _
+derive instance Eq a => Eq (PolymorphicSingleConstructorArgument a)
+instance Show a => Show (PolymorphicSingleConstructorArgument a) where
+  show = genericShow
+instance DecodeSingleConstructorArgument a => Decode (PolymorphicSingleConstructorArgument a) where
+  unsafeDecode = genericUnsafeDecode defaultOptions
+
 -- | `ForceTagged a` is decoded using `genericUnsafeDecodeTagged`
 newtype ForceTagged a = ForceTagged a
 
@@ -213,6 +222,12 @@ main = launchAff_ $ runSpec [consoleReporter] do
 
       describe "Single constructor, many arguments" do
         testDecode """ ["foo", 2] """ (Just (SingleConManyArgs "foo" 2))
+
+      describe "Sum type with polymorphic single constructor argument" do
+        describe "with non-record argument" do
+          testDecode """ { "tag": "C2", "contents": 1 } """ (Just (C2 1))
+        describe "with record argument" do
+          testDecode """ { "tag": "C2", "a": 1, "b": 2 } """ (Just (C2 { a: 1, b: 2 }))
 
     describe "Generic - force tagged representation" do
       describe "General sum types - should be the same as general case" do
