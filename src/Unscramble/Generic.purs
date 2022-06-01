@@ -56,25 +56,41 @@ genericDecodeTaggedSumType opts =
 class GenericDecodeSum a where
   genericSumDecoder :: Options -> Array (Tuple String (Foreign -> a))
 
+class DecodeSingleConstructorArgument a where
+  unsafeDecodeSingleConstructorArgument :: Foreign -> a
+
 instance
   ( RL.RowToList r rl
   , DecodeRecord rl
-  , IsSymbol name
-  ) => GenericDecodeSum (Constructor name (Argument (Record r))) where
-  genericSumDecoder opts =
+  ) => DecodeSingleConstructorArgument (Record r) where
+  unsafeDecodeSingleConstructorArgument = unsafeDecode
+
+else instance
+  ( Decode a
+  ) => DecodeSingleConstructorArgument a where
+  unsafeDecodeSingleConstructorArgument = unsafeDecode <<< unwrapContents
+
+instance
+  ( IsSymbol name
+  , DecodeSingleConstructorArgument a
+  ) => GenericDecodeSum (Constructor name (Argument a)) where
+  genericSumDecoder _opts =
     [ Tuple
         (reflectSymbol (Proxy :: Proxy name))
-        (Constructor <<< Argument <<< unsafeDecode)
+        (Constructor <<< Argument <<< unsafeDecodeSingleConstructorArgument)
     ]
 else instance
   ( GenericDecodeArgs args
   , IsSymbol name
   ) => GenericDecodeSum (Constructor name args) where
-  genericSumDecoder opts =
+  genericSumDecoder _opts =
     [ Tuple
         (reflectSymbol (Proxy :: Proxy name))
-        (Constructor <<< genericDecodeArgs <<< _.contents <<< unsafeCoerce)
+        (Constructor <<< genericDecodeArgs <<< unwrapContents)
     ]
+
+unwrapContents :: Foreign -> Foreign
+unwrapContents = _.contents <<< unsafeCoerce
 
 class GenericDecodeArgs a where
   genericDecodeArgs :: Foreign -> a
