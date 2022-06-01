@@ -26,9 +26,9 @@ newtype Product = Product
   , additions :: Array Addition
   }
 
-derive newtype instance decodeProductU :: U.Decode Product
-derive newtype instance decodeProductF :: F.Decode Product
-derive instance eqProduct :: Eq Product
+derive newtype instance U.Decode Product
+derive newtype instance F.Decode Product
+derive instance Eq Product
 
 newtype Addition = Addition
   { name :: String
@@ -40,9 +40,9 @@ newtype Addition = Addition
   , maxQuantity :: Maybe Int
   }
 
-derive newtype instance decodeAdditionU :: U.Decode Addition
-derive newtype instance decodeAdditionF :: F.Decode Addition
-derive instance eqAddition :: Eq Addition
+derive newtype instance U.Decode Addition
+derive newtype instance F.Decode Addition
+derive instance Eq Addition
 
 foreign import generateData :: Effect Foreign
 

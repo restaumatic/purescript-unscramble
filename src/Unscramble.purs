@@ -37,28 +37,28 @@ foreign import decodingError :: forall a. String -> a
 class Decode a where
   unsafeDecode :: Foreign -> a
 
-instance decode_Foreign :: Decode Foreign where
+instance Decode Foreign where
   unsafeDecode x = x
 
-instance decode_Unit :: Decode Unit where
+instance Decode Unit where
   unsafeDecode _ = unit
 
-instance decode_String :: Decode String where
+instance Decode String where
   unsafeDecode = decodeString
 
-instance decode_Number :: Decode Number where
+instance Decode Number where
   unsafeDecode = decodeNumber
 
-instance decode_Int :: Decode Int where
+instance Decode Int where
   unsafeDecode = decodeInt
 
-instance decode_Boolean :: Decode Boolean where
+instance Decode Boolean where
   unsafeDecode = decodeBoolean
 
-instance decode_Array :: Decode a => Decode (Array a) where
+instance Decode a => Decode (Array a) where
   unsafeDecode = decodeArray unsafeDecode
 
-instance decode_NonEmptyArray :: Decode a => Decode (NE.NonEmptyArray a) where
+instance Decode a => Decode (NE.NonEmptyArray a) where
   unsafeDecode f =
     case NE.fromArray (decodeArray unsafeDecode f) of
       Just nonEmpty ->
@@ -66,26 +66,26 @@ instance decode_NonEmptyArray :: Decode a => Decode (NE.NonEmptyArray a) where
       Nothing -> 
         decodingError "NonEmptyArray should not be empty"
 
-instance decode_Tuple :: (Decode a, Decode b) => Decode (Tuple a b) where
+instance (Decode a, Decode b) => Decode (Tuple a b) where
   unsafeDecode v =
     case expectArray v of
       [a, b] -> Tuple (unsafeDecode a) (unsafeDecode b)
       _ -> decodingError "Invalid array length in Tuple representation"
 
-instance decode_Object :: Decode a => Decode (Object a) where
+instance Decode a => Decode (Object a) where
   unsafeDecode = decodeObject unsafeDecode
 
-instance decode_Record :: (RL.RowToList r rl, DecodeRecord rl) => Decode (Record r) where
+instance (RL.RowToList r rl, DecodeRecord rl) => Decode (Record r) where
   unsafeDecode = decodeRecord (recordInfo (Proxy :: Proxy rl))
 
-instance decode_Maybe :: Decode a => Decode (Maybe a) where
+instance Decode a => Decode (Maybe a) where
   unsafeDecode value =
       if isNull value || isUndefined value then
         Nothing
       else
         Just (unsafeDecode value)
 
-instance decode_Set :: (Decode a, Ord a) => Decode (Set.Set a) where
+instance (Decode a, Ord a) => Decode (Set.Set a) where
   unsafeDecode = Set.fromFoldable <<< decodeArray unsafeDecode
 
 -- Map decoding
@@ -93,7 +93,7 @@ instance decode_Set :: (Decode a, Ord a) => Decode (Set.Set a) where
 class FromJSONKey k where
   fromJSONKey :: FromJSONKeyFunction k
 
-instance fromJSONKeyString :: FromJSONKey String where
+instance FromJSONKey String where
   fromJSONKey = FromJSONKeyString identity
 
 defaultFromJSONKeyValue :: forall k. Decode k => FromJSONKeyFunction k
@@ -101,7 +101,7 @@ defaultFromJSONKeyValue = FromJSONKeyValue unsafeDecode
 
 data FromJSONKeyFunction k = FromJSONKeyString (String -> k) | FromJSONKeyValue (Foreign -> k)
 
-instance decode_Map :: (FromJSONKey k, Ord k, Decode v) => Decode (Map.Map k v) where
+instance (FromJSONKey k, Ord k, Decode v) => Decode (Map.Map k v) where
   unsafeDecode v =
     case fromJSONKey :: FromJSONKeyFunction k of
       FromJSONKeyString decodeKey ->
@@ -119,10 +119,10 @@ foreign import decodeRecord :: forall r. RecordInfo -> Foreign -> Record r
 class DecodeRecord rl where
   recordInfo :: Proxy rl -> RecordInfo
 
-instance decodeRecordNil :: DecodeRecord RL.Nil where
+instance DecodeRecord RL.Nil where
   recordInfo _ = recordInfoNil
 
-instance decodeRecordCons :: (IsSymbol label, Decode a, DecodeRecord rest) => DecodeRecord (RL.Cons label a rest) where
+instance (IsSymbol label, Decode a, DecodeRecord rest) => DecodeRecord (RL.Cons label a rest) where
   recordInfo _ = recordInfoCons
     (reflectSymbol (Proxy :: Proxy label))
     (unsafeDecode :: Foreign -> a)

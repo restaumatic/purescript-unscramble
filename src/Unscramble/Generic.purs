@@ -36,10 +36,10 @@ defaultOptions = {}
 class GenericDecode a where
   genericDecoder :: Options -> Foreign -> a
 
-instance genericDecodeSingleConstructor :: GenericDecodeArgs args => GenericDecode (Constructor name args) where
+instance GenericDecodeArgs args => GenericDecode (Constructor name args) where
   genericDecoder opts = Constructor <<< genericDecodeArgs
 
-else instance genericDecodeSumType :: GenericDecodeSum a => GenericDecode a where
+else instance GenericDecodeSum a => GenericDecode a where
   genericDecoder = genericDecodeTaggedSumType
   
 genericDecodeTaggedSumType :: forall a. GenericDecodeSum a => Options -> Foreign -> a
@@ -56,7 +56,7 @@ genericDecodeTaggedSumType opts =
 class GenericDecodeSum a where
   genericSumDecoder :: Options -> Array (Tuple String (Foreign -> a))
 
-instance genericDecodeSingleRecordArgumentConstructor ::
+instance
   ( RL.RowToList r rl
   , DecodeRecord rl
   , IsSymbol name
@@ -66,7 +66,7 @@ instance genericDecodeSingleRecordArgumentConstructor ::
         (reflectSymbol (Proxy :: Proxy name))
         (Constructor <<< Argument <<< unsafeDecode)
     ]
-else instance genericDecodeConstructor ::
+else instance
   ( GenericDecodeArgs args
   , IsSymbol name
   ) => GenericDecodeSum (Constructor name args) where
@@ -79,13 +79,13 @@ else instance genericDecodeConstructor ::
 class GenericDecodeArgs a where
   genericDecodeArgs :: Foreign -> a
 
-instance genericDecodeArgsNoArguments :: GenericDecodeArgs NoArguments where
+instance GenericDecodeArgs NoArguments where
   genericDecodeArgs _ = NoArguments
 
-else instance genericDecodeArgsSingleArg :: Decode a => GenericDecodeArgs (Argument a) where
+else instance Decode a => GenericDecodeArgs (Argument a) where
   genericDecodeArgs = Argument <<< unsafeDecode
 
-else instance genericDecodeArgsManyArgs :: GenericDecodeManyArgs args => GenericDecodeArgs args where
+else instance GenericDecodeManyArgs args => GenericDecodeArgs args where
   genericDecodeArgs =
     let Tuple numArgs decode = argsDecoder :: Tuple Int (Int -> Array Foreign -> args)
     in \value ->
@@ -98,16 +98,16 @@ else instance genericDecodeArgsManyArgs :: GenericDecodeManyArgs args => Generic
 class GenericDecodeManyArgs a where
   argsDecoder :: Tuple Int (Int -> Array Foreign -> a)
 
-instance genericDecodeManyArgsProduct :: (GenericDecodeManyArgs a, GenericDecodeManyArgs b) => GenericDecodeManyArgs (Product a b) where
+instance (GenericDecodeManyArgs a, GenericDecodeManyArgs b) => GenericDecodeManyArgs (Product a b) where
   argsDecoder =
     let Tuple args1 decode1 = argsDecoder :: Tuple Int (Int -> Array Foreign -> a)
         Tuple args2 decode2 = argsDecoder :: Tuple Int (Int -> Array Foreign -> b)
     in Tuple (args1 + args2) (\offset array -> Product (decode1 offset array) (decode2 (offset + args1) array))
 
-instance genericDecodeManyArgsArgument :: Decode a => GenericDecodeManyArgs (Argument a) where
+instance Decode a => GenericDecodeManyArgs (Argument a) where
   argsDecoder = Tuple 1 (\offset array -> Argument (unsafeDecode (unsafePartial (Array.unsafeIndex array offset))))
 
-instance genericDecodeSum :: (GenericDecodeSum a, GenericDecodeSum b) => GenericDecodeSum (Sum a b) where
+instance (GenericDecodeSum a, GenericDecodeSum b) => GenericDecodeSum (Sum a b) where
   genericSumDecoder opts =
     map (map (map Inl)) (genericSumDecoder opts) <>
     map (map (map Inr)) (genericSumDecoder opts)

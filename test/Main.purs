@@ -26,58 +26,58 @@ type TestRecord = { a :: Int, b :: Int }
 
 newtype ValueKey = ValueKey String
 
-derive newtype instance eqValueKey :: Eq ValueKey
-derive newtype instance showValueKey :: Show ValueKey
-derive newtype instance ordValueKey :: Ord ValueKey
-derive newtype instance decodeValueKey :: Decode ValueKey
+derive newtype instance Eq ValueKey
+derive newtype instance Show ValueKey
+derive newtype instance Ord ValueKey
+derive newtype instance Decode ValueKey
 
-instance fromJSONKeyValueKey :: FromJSONKey ValueKey where
+instance FromJSONKey ValueKey where
   fromJSONKey = defaultFromJSONKeyValue
 
 data Enum = A | B | C
 
-derive instance genericEnum :: Generic Enum _
-derive instance eqEnum :: Eq Enum
-instance showEnum :: Show Enum where
+derive instance Generic Enum _
+derive instance Eq Enum
+instance Show Enum where
   show = genericShow
-instance decodeEnum :: Decode Enum where
+instance Decode Enum where
   unsafeDecode = genericUnsafeDecodeEnum defaultEnumOptions
 
 newtype SingleConstructor a = SingleConstructor a
 
-derive instance genericSingleConstructor :: Generic (SingleConstructor a) _
-derive instance eqSingleConstructor :: Eq a => Eq (SingleConstructor a)
-instance showSingleConstructor :: Show a => Show (SingleConstructor a) where
+derive instance Generic (SingleConstructor a) _
+derive instance Eq a => Eq (SingleConstructor a)
+instance Show a => Show (SingleConstructor a) where
   show = genericShow
-instance decodeSingleConstructor :: Decode a => Decode (SingleConstructor a) where
+instance Decode a => Decode (SingleConstructor a) where
   unsafeDecode = genericUnsafeDecode defaultOptions
 
 data Sum = NoArgs | SingleArg Int | SingleRecordArg TestRecord | ManyArgs TestRecord Int | ThreeArgs Int Int Int
 
-derive instance genericSum :: Generic Sum _
-derive instance eqSum :: Eq Sum
-instance showSum :: Show Sum where
+derive instance Generic Sum _
+derive instance Eq Sum
+instance Show Sum where
   show = genericShow
-instance decodeSum :: Decode Sum where
+instance Decode Sum where
   unsafeDecode = genericUnsafeDecode defaultOptions
 
 -- | `ForceTagged a` is decoded using `genericUnsafeDecodeTagged`
 newtype ForceTagged a = ForceTagged a
 
-derive instance genericForceTagged :: Generic (ForceTagged a) _
-derive newtype instance eqForceTagged :: Eq a => Eq (ForceTagged a)
-instance showForceTagged :: Show a => Show (ForceTagged a) where
+derive instance Generic (ForceTagged a) _
+derive newtype instance Eq a => Eq (ForceTagged a)
+instance Show a => Show (ForceTagged a) where
   show = genericShow
-instance decodeForceTagged :: (Generic a rep, GenericDecodeSum rep) => Decode (ForceTagged a) where
+instance (Generic a rep, GenericDecodeSum rep) => Decode (ForceTagged a) where
   unsafeDecode = ForceTagged <<< genericUnsafeDecodeTagged defaultOptions
 
 data SingleConManyArgs = SingleConManyArgs String Int
 
-derive instance genericSingleConManyArgs :: Generic SingleConManyArgs _
-derive instance eqSingleConManyArgs :: Eq SingleConManyArgs
-instance showSingleConManyArgs :: Show SingleConManyArgs where
+derive instance Generic SingleConManyArgs _
+derive instance Eq SingleConManyArgs
+instance Show SingleConManyArgs where
   show = genericShow
-instance decodeSingleConManyArgs :: Decode SingleConManyArgs where
+instance Decode SingleConManyArgs where
   unsafeDecode = genericUnsafeDecode defaultOptions
 
 main :: Effect Unit

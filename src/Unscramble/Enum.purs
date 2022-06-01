@@ -30,14 +30,14 @@ defaultEnumOptions = { constructorTagTransform: identity }
 class EnumConstructors a where
   enumConstructors :: EnumOptions -> Array (Tuple String a)
 
-instance enumConstructorsConstructor :: IsSymbol name => EnumConstructors (Constructor name NoArguments) where
+instance IsSymbol name => EnumConstructors (Constructor name NoArguments) where
   enumConstructors opts =
     [ Tuple
         (opts.constructorTagTransform $ reflectSymbol (Proxy :: Proxy name))
         (Constructor NoArguments)
     ]
 
-instance enumConstructorsSum :: (EnumConstructors a, EnumConstructors b) => EnumConstructors (Sum a b) where
+instance (EnumConstructors a, EnumConstructors b) => EnumConstructors (Sum a b) where
   enumConstructors opts =
     map (map Inl) (enumConstructors opts) <>
     map (map Inr) (enumConstructors opts)

@@ -55,7 +55,7 @@ import Unscramble (class Decode)
 
 newtype Person = Person { name :: String, age :: Int }
 
-derive newtype instance decodePerson :: Decode Person
+derive newtype instance Decode Person
 ```
 
 ### Sum types
@@ -69,8 +69,8 @@ import Unscramble.Generic as UG
 
 data Person = NamedPerson { name :: String } | NamelessPerson
 
-derive instance genericPerson :: Generic Person _
-instance decodePerson :: Decode Person where
+derive instance Generic Person _
+instance Decode Person where
   unsafeDecode = UG.unsafeGenericDecode UG.defaultOptions
 ```
 
@@ -78,12 +78,12 @@ Note: The partial application of `unsafeGenericDecode` precomputes a lookup tabl
 To avoid reconstructing it on every decode, make sure it is not behind a lambda. For example:
 
 ```purescript
-instance decodePerson :: Decode Person where
+instance Decode Person where
   -- GOOD, `UG.unsafeGenericDecode UG.defaultOptions` is computed once
   unsafeDecode = someFixup <<< UG.unsafeGenericDecode UG.defaultOptions
     where someFixup person = ...
 
-instance decodePerson :: Decode Person where
+instance Decode Person where
   -- BAD, `UG.unsafeGenericDecode UG.defaultOptions` is computed for every decoded value
   unsafeDecode value = someFixup (UG.unsafeGenericDecode UG.defaultOptions value)
     where someFixup person = ...
@@ -92,7 +92,7 @@ instance decodePerson :: Decode Person where
 If you need more complicated logic than a simple function composition, make the sharing explicit, e.g.:
 
 ```purescript
-instance decodePerson :: Decode Person where
+instance Decode Person where
   -- GOOD, `UG.unsafeGenericDecode UG.defaultOptions` is computed once
   unsafeDecode =
     let decode = UG.unsafeGenericDecode UG.defaultOptions
@@ -114,8 +114,8 @@ import Unscramble.Enum as UE
 
 data Weather = Sunny | Rainy | Cold
 
-derive instance genericWeather :: Generic Weather _
-instance decodeWeather :: Decode Weather where
+derive instance Generic Weather _
+instance Decode Weather where
   unsafeDecode = UE.unsafeGenericDecodeEnum UE.defaultEnumOptions
 ```
 
@@ -134,7 +134,7 @@ import Unscramble as U
 
 newtype UUID = UUID String
 
-instance decodeUUID :: Decode UUID where
+instance Decode UUID where
   unsafeDecode value =
     let str = U.unsafeDecode value :: String in
     if isValidUUID str then
@@ -172,7 +172,7 @@ import Unscramble as U
 newtype Num = Num Number
 
 -- | `Num` can be encoded either as JSON Number, or JSON String.
-instance decodeNum :: U.Decode Num where
+instance U.Decode Num where
   unsafeDecode value =
     if U.isString value then
       case Number.fromString (U.unsafeDecode value) of

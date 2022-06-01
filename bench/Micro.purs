@@ -30,13 +30,13 @@ import Data.String as String
 -- A value which should have negligible decoding overhead.
 newtype Value = Value Foreign
 
-derive newtype instance encodeValue :: F.Encode Value
-derive newtype instance decodeValueU :: U.Decode Value
-derive newtype instance decodeValueF :: F.Decode Value
-derive newtype instance decodeValueSJ :: SJ.ReadForeign Value
-instance decodeValueA :: A.DecodeJson Value where
+derive newtype instance F.Encode Value
+derive newtype instance U.Decode Value
+derive newtype instance F.Decode Value
+derive newtype instance SJ.ReadForeign Value
+instance A.DecodeJson Value where
   decodeJson = pure <<< Value <<< F.unsafeToForeign
-instance eqValue :: Eq Value where
+instance Eq Value where
   eq (Value x) (Value y) = F.encodeJSON x == F.encodeJSON y
 
 newtype R3 = R3
@@ -51,13 +51,13 @@ def = Value (F.encode 1)
 genValue :: Int -> Value
 genValue _ = def
 
-derive instance genericR3 :: Generic R3 _
-derive newtype instance encodeR3 :: F.Encode R3
-derive newtype instance decodeR3U :: U.Decode R3
-derive newtype instance decodeR3F :: F.Decode R3
-derive newtype instance decodeR3SJ :: SJ.ReadForeign R3
-derive newtype instance decodeR3A :: A.DecodeJson R3
-derive instance eqR3 :: Eq R3
+derive instance Generic R3 _
+derive newtype instance F.Encode R3
+derive newtype instance U.Decode R3
+derive newtype instance F.Decode R3
+derive newtype instance SJ.ReadForeign R3
+derive newtype instance A.DecodeJson R3
+derive instance Eq R3
 
 newtype R10 = R10
   { f1 :: Value
@@ -72,13 +72,13 @@ newtype R10 = R10
   , f10 :: Value
   }
 
-derive instance genericR10 :: Generic R10 _
-derive newtype instance encodeR10 :: F.Encode R10
-derive newtype instance decodeR10U :: U.Decode R10
-derive newtype instance decodeR10F :: F.Decode R10
-derive newtype instance decodeR10SJ :: SJ.ReadForeign R10
-derive newtype instance decodeR10A :: A.DecodeJson R10
-derive instance eqR10 :: Eq R10
+derive instance Generic R10 _
+derive newtype instance F.Encode R10
+derive newtype instance U.Decode R10
+derive newtype instance F.Decode R10
+derive newtype instance SJ.ReadForeign R10
+derive newtype instance A.DecodeJson R10
+derive instance Eq R10
 
 newtype R30 = R30
   { f1 :: Value
@@ -113,21 +113,21 @@ newtype R30 = R30
   , f30 :: Value
   }
 
-derive instance genericR30 :: Generic R30 _
-derive newtype instance encodeR30 :: F.Encode R30
-derive newtype instance decodeR30U :: U.Decode R30
-derive newtype instance decodeR30F :: F.Decode R30
-derive newtype instance decodeR30SJ :: SJ.ReadForeign R30
-derive newtype instance decodeR30A :: A.DecodeJson R30
-derive instance eqR30 :: Eq R30
+derive instance Generic R30 _
+derive newtype instance F.Encode R30
+derive newtype instance U.Decode R30
+derive newtype instance F.Decode R30
+derive newtype instance SJ.ReadForeign R30
+derive newtype instance A.DecodeJson R30
+derive instance Eq R30
 
 data Enum3 = E3_1 | E3_2 | E3_3
 
-derive instance genericEnum3 :: Generic Enum3 _
-instance encodeEnum3 :: F.Encode Enum3 where encode = F.genericEncodeEnum F.defaultGenericEnumOptions
-instance decodeEnum3U :: U.Decode Enum3 where unsafeDecode = U.genericUnsafeDecodeEnum U.defaultEnumOptions
-instance decodeEnum3F :: F.Decode Enum3 where decode = F.genericDecodeEnum F.defaultGenericEnumOptions
-instance decodeEnum3A :: A.DecodeJson Enum3 where decodeJson = A.decodeLiteralSum
+derive instance Generic Enum3 _
+instance F.Encode Enum3 where encode = F.genericEncodeEnum F.defaultGenericEnumOptions
+instance U.Decode Enum3 where unsafeDecode = U.genericUnsafeDecodeEnum U.defaultEnumOptions
+instance F.Decode Enum3 where decode = F.genericDecodeEnum F.defaultGenericEnumOptions
+instance A.DecodeJson Enum3 where decodeJson = A.decodeLiteralSum
 
 data Enum10
   = E10_1
@@ -141,11 +141,11 @@ data Enum10
   | E10_9
   | E10_10
 
-derive instance genericEnum10 :: Generic Enum10 _
-instance encodeEnum10 :: F.Encode Enum10 where encode = F.genericEncodeEnum F.defaultGenericEnumOptions
-instance decodeEnum10U :: U.Decode Enum10 where unsafeDecode = U.genericUnsafeDecodeEnum U.defaultEnumOptions
-instance decodeEnum10F :: F.Decode Enum10 where decode = F.genericDecodeEnum F.defaultGenericEnumOptions
-instance decodeEnum10A :: A.DecodeJson Enum10 where decodeJson = A.decodeLiteralSum
+derive instance Generic Enum10 _
+instance F.Encode Enum10 where encode = F.genericEncodeEnum F.defaultGenericEnumOptions
+instance U.Decode Enum10 where unsafeDecode = U.genericUnsafeDecodeEnum U.defaultEnumOptions
+instance F.Decode Enum10 where decode = F.genericDecodeEnum F.defaultGenericEnumOptions
+instance A.DecodeJson Enum10 where decodeJson = A.decodeLiteralSum
 
 data Enum30
   = E30_1
@@ -179,11 +179,11 @@ data Enum30
   | E30_29
   | E30_30
 
-derive instance genericEnum30 :: Generic Enum30 _
-instance encodeEnum30 :: F.Encode Enum30 where encode = F.genericEncodeEnum F.defaultGenericEnumOptions
-instance decodeEnum30U :: U.Decode Enum30 where unsafeDecode = U.genericUnsafeDecodeEnum U.defaultEnumOptions
-instance decodeEnum30F :: F.Decode Enum30 where decode = F.genericDecodeEnum F.defaultGenericEnumOptions
-instance decodeEnum30A :: A.DecodeJson Enum30 where decodeJson = A.decodeLiteralSum
+derive instance Generic Enum30 _
+instance F.Encode Enum30 where encode = F.genericEncodeEnum F.defaultGenericEnumOptions
+instance U.Decode Enum30 where unsafeDecode = U.genericUnsafeDecodeEnum U.defaultEnumOptions
+instance F.Decode Enum30 where decode = F.genericDecodeEnum F.defaultGenericEnumOptions
+instance A.DecodeJson Enum30 where decodeJson = A.decodeLiteralSum
 
 type SumArg = { value :: Value }
 
@@ -195,7 +195,7 @@ data Sum3
   | S3_2 SumArg
   | S3_3 SumArg
 
-derive instance genericSum3 :: Generic Sum3 _
+derive instance Generic Sum3 _
 
 data Sum10
   = S10_1 SumArg
@@ -209,7 +209,7 @@ data Sum10
   | S10_9 SumArg
   | S10_10 SumArg
 
-derive instance genericSum10 :: Generic Sum10 _
+derive instance Generic Sum10 _
 
 data Sum30
   = S30_1 SumArg
@@ -243,7 +243,7 @@ data Sum30
   | S30_29 SumArg
   | S30_30 SumArg
 
-derive instance genericSum30 :: Generic Sum30 _
+derive instance Generic Sum30 _
 
 foreign import measure :: forall a. String -> (Unit -> a) -> Effect Unit
 
@@ -409,16 +409,16 @@ unwrap (GenericWrapper x) = x
 foreignGenericOpts :: F.Options
 foreignGenericOpts = F.defaultOptions { unwrapSingleConstructors = true }
 
-instance encodeGenericWrapperF :: (Generic a rep, F.GenericEncode rep) => F.Encode (GenericWrapper a) where
+instance (Generic a rep, F.GenericEncode rep) => F.Encode (GenericWrapper a) where
   encode = F.genericEncode foreignGenericOpts <<< unwrap
 
-instance decodeGenericWrapperU :: (Generic a rep, U.GenericDecode rep) => U.Decode (GenericWrapper a) where
+instance (Generic a rep, U.GenericDecode rep) => U.Decode (GenericWrapper a) where
   unsafeDecode = GenericWrapper <<< U.genericUnsafeDecode U.defaultOptions
 
-instance decodeGenericWrapperF :: (Generic a rep, F.GenericDecode rep) => F.Decode (GenericWrapper a) where
+instance (Generic a rep, F.GenericDecode rep) => F.Decode (GenericWrapper a) where
   decode = map GenericWrapper <<< F.genericDecode foreignGenericOpts
 
-instance decodeGenericWrapperA :: (Generic a rep, A.DecodeRep rep) => A.DecodeJson (GenericWrapper a) where
+instance (Generic a rep, A.DecodeRep rep) => A.DecodeJson (GenericWrapper a) where
   decodeJson = map GenericWrapper <<< A.genericDecodeJsonWith defaultArgonautEncoding
 
 defaultArgonautEncoding :: A.Encoding
