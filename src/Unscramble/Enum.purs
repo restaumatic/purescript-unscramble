@@ -2,42 +2,42 @@ module Unscramble.Enum where
 
 import Prelude
 
-import Unscramble
-import Foreign
+import Unscramble (decodeString, decodingError)
+import Foreign (Foreign)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Data.Symbol (class IsSymbol, reflectSymbol)
 import Type.Proxy (Proxy(..))
-import Data.Generic.Rep (class Generic, Argument, Constructor(..), NoArguments(..), Product, Sum(..), from, to)
+import Data.Generic.Rep (class Generic, Constructor(..), NoArguments(..), Sum(..), to)
 import Foreign.Object as Object
 
-genericUnsafeDecodeEnum :: forall a rep. Generic a rep => EnumConstructors rep => EnumOptions -> Foreign -> a
+genericUnsafeDecodeEnum :: forall a rep. Generic a rep => EnumConstructors rep a => EnumOptions -> Foreign -> a
 genericUnsafeDecodeEnum opts =
-  let constructors = Object.fromFoldable (enumConstructors opts :: Array (Tuple String rep))
+  let constructors = Object.fromFoldable (enumConstructors to opts :: Array (Tuple String a))
   in \value ->
     let tag = decodeString value in
     case Object.lookup tag constructors of
       Nothing ->
         decodingError $ "Invalid enum tag value: " <> show tag
       Just x ->
-        to x
+        x
 
 type EnumOptions = { constructorTagTransform :: String -> String }
 
 defaultEnumOptions :: EnumOptions
 defaultEnumOptions = { constructorTagTransform: identity }
 
-class EnumConstructors a where
-  enumConstructors :: EnumOptions -> Array (Tuple String a)
+class EnumConstructors a r where
+  enumConstructors :: (a -> r) -> EnumOptions -> Array (Tuple String r)
 
-instance IsSymbol name => EnumConstructors (Constructor name NoArguments) where
-  enumConstructors opts =
+instance IsSymbol name => EnumConstructors (Constructor name NoArguments) r where
+  enumConstructors construct opts =
     [ Tuple
         (opts.constructorTagTransform $ reflectSymbol (Proxy :: Proxy name))
-        (Constructor NoArguments)
+        (construct (Constructor NoArguments))
     ]
 
-instance (EnumConstructors a, EnumConstructors b) => EnumConstructors (Sum a b) where
-  enumConstructors opts =
-    map (map Inl) (enumConstructors opts) <>
-    map (map Inr) (enumConstructors opts)
+instance (EnumConstructors a r, EnumConstructors b r) => EnumConstructors (Sum a b) r where
+  enumConstructors construct opts =
+    enumConstructors (construct <<< Inl) opts <>
+    enumConstructors (construct <<< Inr) opts
